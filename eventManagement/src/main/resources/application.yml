@@ -3,6 +3,14 @@ spring:
     url: jdbc:postgresql://localhost:5432/event
     username: muhu
     password: password
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      minimum-idle: 10
+      maximum-pool-size: 50
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      connection-timeout: 30000
+      pool-name: HikariPool-1
   jpa:
     hibernate:
       ddl-auto: create-drop
