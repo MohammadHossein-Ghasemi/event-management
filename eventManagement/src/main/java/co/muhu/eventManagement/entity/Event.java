@@ -20,8 +20,8 @@ import java.util.Set;
 @Table(name = "event")
 public class Event {
     @Id
-    @SequenceGenerator(sequenceName = "event_id_seq",name = "e_seq",allocationSize = 1)
-    @GeneratedValue(strategy = GenerationType.AUTO,generator = "e_seq")
+    @SequenceGenerator(sequenceName = "event_id_seq", name = "e_seq", allocationSize = 1)
+    @GeneratedValue(strategy = GenerationType.AUTO, generator = "e_seq")
     private Long id;
     @NotBlank(message = "Name can not be blank.")
     private String name;
@@ -57,12 +57,12 @@ public class Event {
     @ManyToOne
     private Organizer organizer;
 
-    @OneToMany(mappedBy = "event")
+    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL)
     private Set<Ticket> ticketSet;
 
     @ManyToOne
     private Venue venue;
 
-    @OneToMany(mappedBy = "event")
+    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL)
     private Set<FeedBack> feedBackSet;
 }
