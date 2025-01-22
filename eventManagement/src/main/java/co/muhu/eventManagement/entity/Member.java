@@ -41,10 +41,10 @@ public class Member {
     @UpdateTimestamp
     private LocalDateTime updatedDate;
 
-    @OneToMany(mappedBy = "member")
+    @OneToMany(mappedBy = "member",cascade = CascadeType.ALL)
     private Set<Event> organizedEvents;
 
-    @ManyToMany
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(name = "event_member",
             joinColumns = @JoinColumn(name = "event_id"),
             inverseJoinColumns = @JoinColumn(name = "member_id"))
