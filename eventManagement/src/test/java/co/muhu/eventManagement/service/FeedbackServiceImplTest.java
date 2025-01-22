@@ -3,6 +3,7 @@ package co.muhu.eventManagement.service;
 import co.muhu.eventManagement.entity.Event;
 import co.muhu.eventManagement.entity.FeedBack;
 import co.muhu.eventManagement.entity.Participant;
+import co.muhu.eventManagement.exception.ResourceNotFoundException;
 import co.muhu.eventManagement.repository.EventRepository;
 import co.muhu.eventManagement.repository.FeedBackRepository;
 import co.muhu.eventManagement.repository.ParticipantRepository;
@@ -149,14 +150,34 @@ class FeedbackServiceImplTest {
     @Test
     void getAllFeedbacksByEventId() {
         long eventId=1;
+        when(eventRepositoryMock.existsById(eventId)).thenReturn(true);
         feedbackServiceTest.getAllFeedbacksByEventId(eventId);
         verify(feedBackRepositoryMock).findAllByEventId(eventId);
+    }
+    @Test
+    void getAllFeedbacksByEventIdWhenEventNotPresent() {
+        long eventId=1;
+        when(eventRepositoryMock.existsById(eventId)).thenReturn(false);
+
+        assertThatThrownBy(()->feedbackServiceTest.getAllFeedbacksByEventId(eventId))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining("There is no event with this id : "+eventId);
     }
 
     @Test
     void getAllFeedBacksByParticipantId() {
         long participantId=1;
+        when(participantRepositoryMock.existsById(participantId)).thenReturn(true);
         feedbackServiceTest.getAllFeedBacksByParticipantId(participantId);
         verify(feedBackRepositoryMock).findAllByParticipantId(participantId);
+    }
+    @Test
+    void getAllFeedBacksByParticipantIdWhenParticipantNotPresent() {
+        long participantId=1;
+        when(participantRepositoryMock.existsById(participantId)).thenReturn(false);
+        assertThatThrownBy(()->
+                feedbackServiceTest.getAllFeedBacksByParticipantId(participantId))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining("There is no participant with this id : "+participantId);
     }
 }

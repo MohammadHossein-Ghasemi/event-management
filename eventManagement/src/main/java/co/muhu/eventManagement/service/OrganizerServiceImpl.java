@@ -1,6 +1,8 @@
 package co.muhu.eventManagement.service;
 
 import co.muhu.eventManagement.entity.Organizer;
+import co.muhu.eventManagement.exception.ResourceNotFoundException;
+import co.muhu.eventManagement.repository.EventRepository;
 import co.muhu.eventManagement.repository.OrganizerRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -13,6 +15,7 @@ import java.util.concurrent.atomic.AtomicReference;
 @RequiredArgsConstructor
 public class OrganizerServiceImpl implements OrganizerService {
     private final OrganizerRepository organizerRepository;
+    private final EventRepository eventRepository;
     @Override
     public List<Organizer> getAllOrganizers() {
         return organizerRepository.findAll();
@@ -57,6 +60,9 @@ public class OrganizerServiceImpl implements OrganizerService {
 
     @Override
     public List<Organizer> getOrganizerByEventId(Long eventId) {
+        if (!eventRepository.existsById(eventId)){
+            throw new ResourceNotFoundException("There is no event with this id : "+eventId);
+        }
         return organizerRepository.findByEventId(eventId);
     }
 }

@@ -2,6 +2,7 @@ package co.muhu.eventManagement.service;
 
 import co.muhu.eventManagement.entity.FeedBack;
 import co.muhu.eventManagement.entity.Participant;
+import co.muhu.eventManagement.exception.ResourceNotFoundException;
 import co.muhu.eventManagement.repository.EventRepository;
 import co.muhu.eventManagement.repository.FeedBackRepository;
 import co.muhu.eventManagement.repository.ParticipantRepository;
@@ -69,11 +70,17 @@ public class FeedbackServiceImpl implements FeedbackService {
 
     @Override
     public List<FeedBack> getAllFeedbacksByEventId(Long eventId) {
+        if (!eventRepository.existsById(eventId)){
+            throw new ResourceNotFoundException("There is no event with this id : "+eventId);
+        }
         return feedBackRepository.findAllByEventId(eventId);
     }
 
     @Override
     public List<FeedBack> getAllFeedBacksByParticipantId(Long participantId) {
+        if (!participantRepository.existsById(participantId)){
+            throw new ResourceNotFoundException("There is no participant with this id : "+participantId);
+        }
         return feedBackRepository.findAllByParticipantId(participantId);
     }
 }
