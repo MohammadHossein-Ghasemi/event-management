@@ -56,7 +56,7 @@ public class OrganizerServiceImpl implements OrganizerService {
     }
 
     @Override
-    public Optional<Organizer> getOrganizerByEventId(Long eventId) {
+    public List<Organizer> getOrganizerByEventId(Long eventId) {
         return organizerRepository.findByEventId(eventId);
     }
 }

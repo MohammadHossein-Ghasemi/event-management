@@ -11,5 +11,5 @@ public interface OrganizerService {
     Organizer createOrganizer(Organizer organizer);
     Optional<Organizer> updateOrganizer(Long id, Organizer organizer);
     boolean deleteOrganizerById(Long id);
-    Optional<Organizer> getOrganizerByEventId(Long eventId);
+    List<Organizer> getOrganizerByEventId(Long eventId);
 }
