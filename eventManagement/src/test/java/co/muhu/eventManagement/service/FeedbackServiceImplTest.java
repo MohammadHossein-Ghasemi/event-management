@@ -1,7 +1,11 @@
 package co.muhu.eventManagement.service;
 
+import co.muhu.eventManagement.entity.Event;
 import co.muhu.eventManagement.entity.FeedBack;
+import co.muhu.eventManagement.entity.Participant;
+import co.muhu.eventManagement.repository.EventRepository;
 import co.muhu.eventManagement.repository.FeedBackRepository;
+import co.muhu.eventManagement.repository.ParticipantRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -11,6 +15,7 @@ import org.mockito.MockitoAnnotations;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -20,13 +25,17 @@ class FeedbackServiceImplTest {
 
     @Mock
     private FeedBackRepository feedBackRepositoryMock;
+    @Mock
+    private EventRepository eventRepositoryMock;
+    @Mock
+    private ParticipantRepository participantRepositoryMock;
 
     private AutoCloseable autoCloseable;
 
     @BeforeEach
     void setUp(){
         autoCloseable= MockitoAnnotations.openMocks(this);
-        feedbackServiceTest=new FeedbackServiceImpl(feedBackRepositoryMock);
+        feedbackServiceTest=new FeedbackServiceImpl(feedBackRepositoryMock,eventRepositoryMock,participantRepositoryMock);
     }
 
     @AfterEach
@@ -49,11 +58,53 @@ class FeedbackServiceImplTest {
 
     @Test
     void createFeedback() {
-        FeedBack newFeedBack=new FeedBack();
+        Event existedEvent = Event.builder().id((long)1).build();
+        Participant existedParticipant = Participant.builder().id((long)10).build();
+        FeedBack newFeedBack= FeedBack.builder()
+                .event(existedEvent)
+                .participant(existedParticipant)
+                .build();
+
+        when(eventRepositoryMock.existsById(newFeedBack.getEvent().getId())).thenReturn(true);
+        when(participantRepositoryMock.existsById(newFeedBack.getParticipant().getId())).thenReturn(true);
+
         feedbackServiceTest.createFeedback(newFeedBack);
         verify(feedBackRepositoryMock).save(newFeedBack);
     }
+    @Test
+    void createFeedbackWhenEventNotPresent() {
+        Event existedEvent = Event.builder().id((long)1).build();
+        Participant existedParticipant = Participant.builder().id((long)10).build();
+        FeedBack newFeedBack= FeedBack.builder()
+                .event(existedEvent)
+                .participant(existedParticipant)
+                .build();
 
+        when(eventRepositoryMock.existsById(newFeedBack.getEvent().getId())).thenReturn(false);
+        when(participantRepositoryMock.existsById(newFeedBack.getParticipant().getId())).thenReturn(true);
+
+        assertThatThrownBy(()->
+                feedbackServiceTest.createFeedback(newFeedBack))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Event dose not exist.");
+    }
+    @Test
+    void createFeedbackWhenParticipantNotPresent() {
+        Event existedEvent = Event.builder().id((long)1).build();
+        Participant existedParticipant = Participant.builder().id((long)10).build();
+        FeedBack newFeedBack= FeedBack.builder()
+                .event(existedEvent)
+                .participant(existedParticipant)
+                .build();
+
+        when(eventRepositoryMock.existsById(newFeedBack.getEvent().getId())).thenReturn(true);
+        when(participantRepositoryMock.existsById(newFeedBack.getParticipant().getId())).thenReturn(false);
+
+        assertThatThrownBy(()->
+                feedbackServiceTest.createFeedback(newFeedBack))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Participant does not exist.");
+    }
     @Test
     void updateFeedback() {
         FeedBack exitingFeedBack= FeedBack.builder().comments("Old FeedBack").id((long)1).build();

@@ -1,7 +1,10 @@
 package co.muhu.eventManagement.service;
 
 import co.muhu.eventManagement.entity.FeedBack;
+import co.muhu.eventManagement.entity.Participant;
+import co.muhu.eventManagement.repository.EventRepository;
 import co.muhu.eventManagement.repository.FeedBackRepository;
+import co.muhu.eventManagement.repository.ParticipantRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -13,6 +16,8 @@ import java.util.concurrent.atomic.AtomicReference;
 @RequiredArgsConstructor
 public class FeedbackServiceImpl implements FeedbackService {
     private final FeedBackRepository feedBackRepository;
+    private final EventRepository eventRepository;
+    private final ParticipantRepository participantRepository;
 
     @Override
     public List<FeedBack> getAllFeedbacks() {
@@ -26,6 +31,14 @@ public class FeedbackServiceImpl implements FeedbackService {
 
     @Override
     public FeedBack createFeedback(FeedBack feedBack) {
+        Long eventId = feedBack.getEvent().getId();
+        Long participantId = feedBack.getParticipant().getId();
+        if (!eventRepository.existsById(eventId)){
+            throw new IllegalArgumentException("Event dose not exist.");
+        }
+        if (!participantRepository.existsById(participantId)){
+            throw new IllegalArgumentException("Participant does not exist.");
+        }
         return feedBackRepository.save(feedBack);
     }
 
