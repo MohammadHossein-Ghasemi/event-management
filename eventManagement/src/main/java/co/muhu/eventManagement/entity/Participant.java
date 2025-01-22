@@ -30,7 +30,7 @@ public class Participant {
     private String phone;
 
     @CreationTimestamp
-    private LocalDateTime registration_date;
+    private LocalDateTime registrationDate;
     private String status;
 
     @ManyToMany
