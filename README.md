@@ -13,3 +13,8 @@ It leverages Spring Boot for developing robust RESTful APIs, ensuring efficient 
 - **Testcontainers**
 - **Flyway**
 - **Maven**
+
+# Prerequisites
+- Java 17 or higher
+- Maven 3.6.0 or higher
+- PostgreSQL
