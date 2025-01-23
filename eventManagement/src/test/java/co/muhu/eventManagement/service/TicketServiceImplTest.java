@@ -1,6 +1,10 @@
 package co.muhu.eventManagement.service;
 
+import co.muhu.eventManagement.entity.Event;
 import co.muhu.eventManagement.entity.Ticket;
+import co.muhu.eventManagement.exception.ResourceNotFoundException;
+import co.muhu.eventManagement.repository.EventRepository;
+import co.muhu.eventManagement.repository.ParticipantRepository;
 import co.muhu.eventManagement.repository.TicketRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -11,6 +15,7 @@ import org.mockito.MockitoAnnotations;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.any;
@@ -20,13 +25,17 @@ class TicketServiceImplTest {
 
     @Mock
     private TicketRepository ticketRepositoryMock;
+    @Mock
+    private EventRepository eventRepositoryMock;
+    @Mock
+    private ParticipantRepository participantRepositoryMock;
 
     private AutoCloseable autoCloseable;
 
     @BeforeEach
     void setUp(){
         autoCloseable= MockitoAnnotations.openMocks(this);
-        ticketServiceTest = new TicketServiceImpl(ticketRepositoryMock);
+        ticketServiceTest = new TicketServiceImpl(ticketRepositoryMock, eventRepositoryMock, participantRepositoryMock);
     }
 
     @AfterEach
@@ -49,9 +58,21 @@ class TicketServiceImplTest {
 
     @Test
     void createTicket() {
-        Ticket newTicket = Ticket.builder().id((long)1).build();
+        Event event = Event.builder().id((long)10).build();
+        Ticket newTicket = Ticket.builder().id((long)1).event(event).build();
+        when(eventRepositoryMock.existsById(event.getId())).thenReturn(true);
         ticketServiceTest.createTicket(newTicket);
         verify(ticketRepositoryMock).save(newTicket);
+    }
+    @Test
+    void createTicketWhenEventNotPresent() {
+        Event event = Event.builder().id((long)10).build();
+        Ticket newTicket = Ticket.builder().id((long)1).event(event).build();
+        when(eventRepositoryMock.existsById(event.getId())).thenReturn(false);
+
+        assertThatThrownBy(()->ticketServiceTest.createTicket(newTicket))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining("There is no event with id :"+event.getId());
     }
 
     @Test
@@ -112,17 +133,41 @@ class TicketServiceImplTest {
     void getTicketsByEventId() {
         long eventId=1;
 
+        when(eventRepositoryMock.existsById(eventId)).thenReturn(true);
+
         ticketServiceTest.getTicketsByEventId(eventId);
 
         verify(ticketRepositoryMock).findAllByEventId(eventId);
+    }
+    @Test
+    void getTicketsByEventIdWhenEventNotPresent() {
+        long eventId=1;
+
+        when(eventRepositoryMock.existsById(eventId)).thenReturn(false);
+
+        assertThatThrownBy(()->ticketServiceTest.getTicketsByEventId(eventId))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining("There is no event with id :"+eventId);
     }
 
     @Test
     void getTicketsByParticipantId() {
         long participantId=1;
 
+        when(participantRepositoryMock.existsById(participantId)).thenReturn(true);
+
         ticketServiceTest.getTicketsByParticipantId(participantId);
 
         verify(ticketRepositoryMock).findAllByParticipantId(participantId);
+    }
+    @Test
+    void getTicketsByParticipantIdWhenParticipantNotPresent() {
+        long participantId=1;
+
+        when(participantRepositoryMock.existsById(participantId)).thenReturn(false);
+
+        assertThatThrownBy(()->ticketServiceTest.getTicketsByParticipantId(participantId))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining("There is no event with id :"+participantId);
     }
 }
