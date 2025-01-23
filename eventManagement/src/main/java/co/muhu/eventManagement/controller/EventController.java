@@ -2,7 +2,6 @@ package co.muhu.eventManagement.controller;
 
 import co.muhu.eventManagement.entity.Event;
 import co.muhu.eventManagement.exception.ResourceNotFoundException;
-import co.muhu.eventManagement.mappers.EventMapper;
 import co.muhu.eventManagement.model.EventRegistrationDto;
 import co.muhu.eventManagement.service.EventService;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +19,6 @@ public class EventController {
     public static final String EVENT_PATH ="/api/v1/event";
     public static final String EVENT_PATH_ID ="/api/v1/event/{eventId}";
     private final EventService eventService;
-    private final EventMapper eventMapper;
 
     @GetMapping(value = EVENT_PATH)
     public ResponseEntity<List<Event>> getAllEvents(){
@@ -42,8 +40,8 @@ public class EventController {
     }
 
     @PostMapping(value = EVENT_PATH)
-    public ResponseEntity<Event> saveEvent(@Validated @RequestBody EventRegistrationDto newEvent){
-        Event savedEvent = eventService.createEvent(eventMapper.EventRegistrationDtoToEvent(newEvent));
+    public ResponseEntity<Event> saveEvent(@Validated @RequestBody EventRegistrationDto event){
+        Event savedEvent = eventService.createEvent(event);
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .header(HttpHeaders.LOCATION,EVENT_PATH+"/"+savedEvent.getId())
