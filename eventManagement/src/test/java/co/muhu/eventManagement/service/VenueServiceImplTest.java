@@ -1,6 +1,9 @@
 package co.muhu.eventManagement.service;
 
+import co.muhu.eventManagement.entity.Event;
 import co.muhu.eventManagement.entity.Venue;
+import co.muhu.eventManagement.exception.ResourceNotFoundException;
+import co.muhu.eventManagement.repository.EventRepository;
 import co.muhu.eventManagement.repository.VenueRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -9,8 +12,10 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.util.Optional;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.any;
@@ -21,13 +26,15 @@ class VenueServiceImplTest {
 
     @Mock
     private VenueRepository venueRepositoryMock;
+    @Mock
+    private EventRepository eventRepositoryMock;
 
     private AutoCloseable autoCloseable;
 
     @BeforeEach
     void setUp(){
         autoCloseable= MockitoAnnotations.openMocks(this);
-        venueServiceTest= new VenueServiceImpl(venueRepositoryMock);
+        venueServiceTest= new VenueServiceImpl(venueRepositoryMock,eventRepositoryMock);
     }
 
     @AfterEach
@@ -50,9 +57,24 @@ class VenueServiceImplTest {
 
     @Test
     void createVenue() {
-        Venue newVenue= Venue.builder().id((long)1).build();
+        Event event = Event.builder().id((long)1).build();
+        Venue newVenue= Venue.builder().id((long)1).eventSet(Set.of(event)).build();
+        boolean allEventCheck = newVenue.getEventSet().stream()
+                .allMatch(event1 -> eventRepositoryMock.existsById(event1.getId()));
+        when(allEventCheck).thenReturn(true);
         venueServiceTest.createVenue(newVenue);
         verify(venueRepositoryMock).save(newVenue);
+    }
+    @Test
+    void createVenueWhenEventNotPresent() {
+        Event event = Event.builder().id((long)1).build();
+        Venue newVenue= Venue.builder().id((long)1).eventSet(Set.of(event)).build();
+        boolean allEventCheck = newVenue.getEventSet().stream()
+                .allMatch(event1 -> eventRepositoryMock.existsById(event1.getId()));
+        when(allEventCheck).thenReturn(false);
+        assertThatThrownBy(()->venueServiceTest.createVenue(newVenue))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining("One or more associated events do not exist.");
     }
 
     @Test
