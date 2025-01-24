@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -32,7 +33,7 @@ public class Member {
     private String firstName;
     @NotBlank(message = "Last name cannot be blank.")
     private String lastName;
-
+    @Pattern(regexp = "^(\\+\\d{1,3}[- ]?)?\\d{10}$",message = "Invalid phone number.")
     private String phoneNumber;
 
     @CreationTimestamp
