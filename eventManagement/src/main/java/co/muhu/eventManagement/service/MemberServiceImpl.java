@@ -1,9 +1,12 @@
 package co.muhu.eventManagement.service;
 
 import co.muhu.eventManagement.entity.Member;
+import co.muhu.eventManagement.mappers.member.MemberMapper;
+import co.muhu.eventManagement.model.MemberRegistrationDto;
 import co.muhu.eventManagement.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -13,6 +16,7 @@ import java.util.concurrent.atomic.AtomicReference;
 @RequiredArgsConstructor
 public class MemberServiceImpl implements MemberService {
     private final MemberRepository memberRepository;
+    private final MemberMapper memberMapper;
     @Override
     public List<Member> getAllMembers() {
         return memberRepository.findAll();
@@ -25,8 +29,8 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
-    public Member createMember(Member member) {
-
+    public Member createMember(MemberRegistrationDto memberRegistrationDto) {
+        Member member = memberMapper.memberRegistrationDtoToMember(memberRegistrationDto);
         return memberRepository.save(member);
     }
 
@@ -63,6 +67,7 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
+    @Transactional
     public boolean deleteMemberByEmail(String email) {
         if (memberRepository.existsByEmail(email)){
             memberRepository.deleteByEmail(email);
