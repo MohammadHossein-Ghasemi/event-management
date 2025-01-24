@@ -156,6 +156,41 @@ class EventServiceImplTest {
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("Invalid member. Register the member first.");
     }
+    @Test
+    void createEventWhenMemberIsNull() {
+        EventRegistrationDto eventDto = EventRegistrationDto.builder()
+                .name("Test DTO")
+                .location("Test Location")
+                .member(null)
+                .build();
+        Event event = eventMapper.EventRegistrationDtoToEvent(eventDto);
+
+        assertThat(event).isNotNull();
+
+        assertThat(eventDto.getMember()).isNull();
+
+        assertThatThrownBy(()->eventServiceTest.createEvent(eventDto))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining("Invalid member. Register the member first.");
+    }
+    @Test
+    void createEventWhenMemberIdIsNull() {
+        Member member=Member.builder().id(null).build();
+        EventRegistrationDto eventDto = EventRegistrationDto.builder()
+                .name("Test DTO")
+                .location("Test Location")
+                .member(member)
+                .build();
+        Event event = eventMapper.EventRegistrationDtoToEvent(eventDto);
+
+        assertThat(event).isNotNull();
+
+        assertThat(eventDto.getMember().getId()).isNull();
+
+        assertThatThrownBy(()->eventServiceTest.createEvent(eventDto))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining("Invalid member. Register the member first.");
+    }
 
     @Test
     void createEventWhenOrganizerNotPresent() {
@@ -192,6 +227,49 @@ class EventServiceImplTest {
         when(organizerRepositoryMock.existsById(organizer.getId())).thenReturn(false);
         when(venueRepositoryMock.existsById(venue.getId())).thenReturn(true);
         when(participantRepositoryMock.existsById(any(Long.class))).thenReturn(true);
+
+        assertThatThrownBy(()->eventServiceTest.createEvent(eventDto))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining("Invalid organizer. Register the organizer first.");
+    }
+    @Test
+    void createEventWhenOrganizerIsNull() {
+        Member member=Member.builder().id(1L).build();
+        EventRegistrationDto eventDto = EventRegistrationDto.builder()
+                .name("Test DTO")
+                .location("Test Location")
+                .member(member)
+                .organizer(null)
+                .build();
+        Event event = eventMapper.EventRegistrationDtoToEvent(eventDto);
+
+        assertThat(event).isNotNull();
+
+        assertThat(eventDto.getOrganizer()).isNull();
+
+        when(memberRepositoryMock.existsById(any(Long.class))).thenReturn(true);
+
+        assertThatThrownBy(()->eventServiceTest.createEvent(eventDto))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining("Invalid organizer. Register the organizer first.");
+    }
+    @Test
+    void createEventWhenOrganizerIdIsNull() {
+        Member member=Member.builder().id(1L).build();
+        Organizer organizer = Organizer.builder().id(null).build();
+        EventRegistrationDto eventDto = EventRegistrationDto.builder()
+                .name("Test DTO")
+                .location("Test Location")
+                .member(member)
+                .organizer(organizer)
+                .build();
+        Event event = eventMapper.EventRegistrationDtoToEvent(eventDto);
+
+        assertThat(event).isNotNull();
+
+        assertThat(eventDto.getOrganizer().getId()).isNull();
+
+        when(memberRepositoryMock.existsById(any(Long.class))).thenReturn(true);
 
         assertThatThrownBy(()->eventServiceTest.createEvent(eventDto))
                 .isInstanceOf(ResourceNotFoundException.class)
@@ -238,6 +316,57 @@ class EventServiceImplTest {
                 .hasMessageContaining("Invalid venue. Register the venue first.");
     }
     @Test
+    void createEventWhenVenueIsNull() {
+        Member member=Member.builder().id(1L).build();
+        Organizer organizer = Organizer.builder().id(1L).build();
+        EventRegistrationDto eventDto = EventRegistrationDto.builder()
+                .name("Test DTO")
+                .location("Test Location")
+                .member(member)
+                .organizer(organizer)
+                .venue(null)
+                .build();
+        Event event = eventMapper.EventRegistrationDtoToEvent(eventDto);
+
+        assertThat(event).isNotNull();
+
+        assertThat(eventDto.getVenue()).isNull();
+
+        when(memberRepositoryMock.existsById(any(Long.class))).thenReturn(true);
+        when(organizerRepositoryMock.existsById(any(Long.class))).thenReturn(true);
+
+        assertThatThrownBy(()->eventServiceTest.createEvent(eventDto))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining("Invalid venue. Register the venue first.");
+    }
+
+    @Test
+    void createEventWhenVenueIdIsNull() {
+        Member member=Member.builder().id(1L).build();
+        Organizer organizer = Organizer.builder().id(1L).build();
+        Venue venue = Venue.builder().id(null).build();
+        EventRegistrationDto eventDto = EventRegistrationDto.builder()
+                .name("Test DTO")
+                .location("Test Location")
+                .member(member)
+                .organizer(organizer)
+                .venue(venue)
+                .build();
+        Event event = eventMapper.EventRegistrationDtoToEvent(eventDto);
+
+        assertThat(event).isNotNull();
+
+        assertThat(eventDto.getVenue().getId()).isNull();
+
+        when(memberRepositoryMock.existsById(any(Long.class))).thenReturn(true);
+        when(organizerRepositoryMock.existsById(any(Long.class))).thenReturn(true);
+
+        assertThatThrownBy(()->eventServiceTest.createEvent(eventDto))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining("Invalid venue. Register the venue first.");
+    }
+
+    @Test
     void createEventWhenParticipantNotPresent() {
         Member member = Member.builder()
                 .id(1L)
@@ -276,6 +405,64 @@ class EventServiceImplTest {
         assertThatThrownBy(()->eventServiceTest.createEvent(eventDto))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("Invalid participant. Register the participant first: participantId="+(participant == null ? "null" : participant.getId()));
+    }
+
+    @Test
+    void createEventWhenParticipantIsNull() {
+        Member member=Member.builder().id(1L).build();
+        Organizer organizer = Organizer.builder().id(1L).build();
+        Venue venue=Venue.builder().id(1L).build();
+        EventRegistrationDto eventDto = EventRegistrationDto.builder()
+                .name("Test DTO")
+                .location("Test Location")
+                .member(member)
+                .organizer(organizer)
+                .venue(venue)
+                .participantSet(null)
+                .build();
+        Event event = eventMapper.EventRegistrationDtoToEvent(eventDto);
+
+        assertThat(event).isNotNull();
+
+        assertThat(eventDto.getParticipantSet()).isNull();
+
+        when(memberRepositoryMock.existsById(any(Long.class))).thenReturn(true);
+        when(organizerRepositoryMock.existsById(any(Long.class))).thenReturn(true);
+        when(venueRepositoryMock.existsById(any(Long.class))).thenReturn(true);
+
+        assertThatThrownBy(()->eventServiceTest.createEvent(eventDto))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining("Invalid participant. Register the participant first");
+    }
+    @Test
+    void createEventWhenParticipantIdIsNull() {
+        Member member=Member.builder().id(1L).build();
+        Organizer organizer = Organizer.builder().id(1L).build();
+        Venue venue=Venue.builder().id(1L).build();
+        Participant participant = Participant.builder().id(null).build();
+        EventRegistrationDto eventDto = EventRegistrationDto.builder()
+                .name("Test DTO")
+                .location("Test Location")
+                .member(member)
+                .organizer(organizer)
+                .venue(venue)
+                .participantSet(Set.of(participant))
+                .build();
+        Event event = eventMapper.EventRegistrationDtoToEvent(eventDto);
+
+        assertThat(event).isNotNull();
+
+        eventDto.getParticipantSet().forEach(participantSet ->{
+            assertThat(participantSet.getId()).isNull();
+        });
+
+        when(memberRepositoryMock.existsById(any(Long.class))).thenReturn(true);
+        when(organizerRepositoryMock.existsById(any(Long.class))).thenReturn(true);
+        when(venueRepositoryMock.existsById(any(Long.class))).thenReturn(true);
+
+        assertThatThrownBy(()->eventServiceTest.createEvent(eventDto))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining("Invalid participant. Register the participant first: participantId=" + (participant == null ? "null" : participant.getId()));
     }
     @Test
     void updateEvent() {

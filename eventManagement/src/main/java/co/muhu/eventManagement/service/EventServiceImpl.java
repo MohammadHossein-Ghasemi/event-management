@@ -49,8 +49,11 @@ public class EventServiceImpl implements EventService {
             throw new ResourceNotFoundException("Invalid venue. Register the venue first.");
         }
 
+        if (mappedEvent.getParticipantSet()==null){
+            throw new ResourceNotFoundException("Invalid participant. Register the participant first");
+        }
         mappedEvent.getParticipantSet().forEach(participant -> {
-            if (participant==null||participant.getId() == null || !participantRepository.existsById(participant.getId())) {
+            if (participant.getId() == null || !participantRepository.existsById(participant.getId())) {
                 throw new ResourceNotFoundException("Invalid participant. Register the participant first: participantId=" + (participant == null ? "null" : participant.getId()));
             }
         });
