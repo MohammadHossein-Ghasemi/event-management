@@ -50,7 +50,7 @@ public class EventServiceImpl implements EventService {
         }
 
         mappedEvent.getParticipantSet().forEach(participant -> {
-            if (participant == null || participant.getId() == null || !participantRepository.existsById(participant.getId())) {
+            if (participant.getId() == null || !participantRepository.existsById(participant.getId())) {
                 throw new ResourceNotFoundException("Invalid participant. Register the participant first: participantId=" + (participant == null ? "null" : participant.getId()));
             }
         });
