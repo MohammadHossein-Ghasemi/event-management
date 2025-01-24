@@ -37,20 +37,20 @@ public class EventServiceImpl implements EventService {
     public Event createEvent(EventRegistrationDto event) {
         Event mappedEvent = eventMapper.EventRegistrationDtoToEvent(event);
 
-        if (mappedEvent.getMember().getId() == null || !memberRepository.existsById(mappedEvent.getMember().getId())) {
+        if (mappedEvent.getMember()==null||mappedEvent.getMember().getId() == null || !memberRepository.existsById(mappedEvent.getMember().getId())) {
             throw new ResourceNotFoundException("Invalid member. Register the member first.");
         }
 
-        if (mappedEvent.getOrganizer().getId() == null || !organizerRepository.existsById(mappedEvent.getOrganizer().getId())) {
+        if (mappedEvent.getOrganizer()==null||mappedEvent.getOrganizer().getId() == null || !organizerRepository.existsById(mappedEvent.getOrganizer().getId())) {
             throw new ResourceNotFoundException("Invalid organizer. Register the organizer first.");
         }
 
-        if (mappedEvent.getVenue().getId() == null || !venueRepository.existsById(mappedEvent.getVenue().getId())) {
+        if (mappedEvent.getVenue()==null||mappedEvent.getVenue().getId() == null || !venueRepository.existsById(mappedEvent.getVenue().getId())) {
             throw new ResourceNotFoundException("Invalid venue. Register the venue first.");
         }
 
         mappedEvent.getParticipantSet().forEach(participant -> {
-            if (participant.getId() == null || !participantRepository.existsById(participant.getId())) {
+            if (participant==null||participant.getId() == null || !participantRepository.existsById(participant.getId())) {
                 throw new ResourceNotFoundException("Invalid participant. Register the participant first: participantId=" + (participant == null ? "null" : participant.getId()));
             }
         });
