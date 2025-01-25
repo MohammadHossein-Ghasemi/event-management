@@ -1,16 +1,21 @@
 package co.muhu.eventManagement.service;
 
+import co.muhu.eventManagement.entity.Event;
 import co.muhu.eventManagement.entity.FeedBack;
 import co.muhu.eventManagement.entity.Participant;
 import co.muhu.eventManagement.exception.ResourceNotFoundException;
+import co.muhu.eventManagement.mappers.feedback.FeedBackMapper;
+import co.muhu.eventManagement.model.FeedBackRegistrationDto;
 import co.muhu.eventManagement.repository.EventRepository;
 import co.muhu.eventManagement.repository.FeedBackRepository;
 import co.muhu.eventManagement.repository.ParticipantRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
 @Service
@@ -19,11 +24,13 @@ public class FeedbackServiceImpl implements FeedbackService {
     private final FeedBackRepository feedBackRepository;
     private final EventRepository eventRepository;
     private final ParticipantRepository participantRepository;
+    private final FeedBackMapper feedBackMapper;
 
     @Override
     public List<FeedBack> getAllFeedbacks() {
         return feedBackRepository.findAll();
     }
+
 
     @Override
     public Optional<FeedBack> getFeedbackById(Long id) {
@@ -31,16 +38,34 @@ public class FeedbackServiceImpl implements FeedbackService {
     }
 
     @Override
-    public FeedBack createFeedback(FeedBack feedBack) {
-        Long eventId = feedBack.getEvent().getId();
-        Long participantId = feedBack.getParticipant().getId();
-        if (!eventRepository.existsById(eventId)){
-            throw new IllegalArgumentException("Event dose not exist.");
+    public FeedBack createFeedback(FeedBackRegistrationDto feedBackRegistrationDto) {
+        FeedBack feedBack = feedBackMapper.feedBackRegistrationDtoToFeedBack(feedBackRegistrationDto);
+
+        if (!checkingFeedBackEventValidate(feedBack)){
+            throw new ResourceNotFoundException("Invalid event. Register the event first.");
         }
-        if (!participantRepository.existsById(participantId)){
-            throw new IllegalArgumentException("Participant does not exist.");
+        if (!checkingFeedBackParticipantValidate(feedBack)){
+            throw new ResourceNotFoundException("Invalid existParticipant. Register the event first.");
         }
+
+        Event existedEvent = eventRepository.findById(feedBack.getEvent().getId()).get();
+        Participant existParticipant = participantRepository.findById(feedBack.getParticipant().getId()).get();
+        feedBack.setEvent(existedEvent);
+        feedBack.setParticipant(existParticipant);
         return feedBackRepository.save(feedBack);
+    }
+
+    private boolean checkingFeedBackEventValidate(FeedBack feedBack){
+        if ((feedBack.getEvent()==null)||(feedBack.getEvent().getId()==null)||(!eventRepository.existsById(feedBack.getEvent().getId()))){
+            return false;
+        }
+        return true;
+    }
+    private boolean checkingFeedBackParticipantValidate(FeedBack feedBack){
+        if ((feedBack.getParticipant()==null)||(feedBack.getParticipant().getId()==null)||(!participantRepository.existsById(feedBack.getParticipant().getId()))){
+            return false;
+        }
+        return true;
     }
 
     @Override

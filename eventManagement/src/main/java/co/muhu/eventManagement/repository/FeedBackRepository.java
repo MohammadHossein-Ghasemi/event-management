@@ -16,4 +16,8 @@ public interface FeedBackRepository extends JpaRepository<FeedBack,Long> {
 
     @Query("SELECT f FROM feedback f LEFT JOIN f.participant p WHERE p.id = :participantId")
     List<FeedBack> findAllByParticipantId(@Param("participantId")Long participantId);
+
+    @Override
+    @Query("SELECT f FROM feedback f LEFT JOIN FETCH f.event LEFT JOIN FETCH f.participant")
+    List<FeedBack> findAll();
 }
