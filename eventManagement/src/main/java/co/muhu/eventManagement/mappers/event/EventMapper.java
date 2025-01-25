@@ -1,4 +1,4 @@
-package co.muhu.eventManagement.mappers;
+package co.muhu.eventManagement.mappers.event;
 
 import co.muhu.eventManagement.entity.Event;
 import co.muhu.eventManagement.model.EventRegistrationDto;

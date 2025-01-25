@@ -1,9 +1,8 @@
 package co.muhu.eventManagement.service;
 
 import co.muhu.eventManagement.entity.Event;
-import co.muhu.eventManagement.entity.Participant;
 import co.muhu.eventManagement.exception.ResourceNotFoundException;
-import co.muhu.eventManagement.mappers.EventMapper;
+import co.muhu.eventManagement.mappers.event.EventMapper;
 import co.muhu.eventManagement.model.EventRegistrationDto;
 import co.muhu.eventManagement.repository.*;
 import lombok.RequiredArgsConstructor;
