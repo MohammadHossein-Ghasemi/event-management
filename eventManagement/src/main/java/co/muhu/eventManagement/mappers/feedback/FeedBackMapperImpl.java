@@ -2,7 +2,9 @@ package co.muhu.eventManagement.mappers.feedback;
 
 import co.muhu.eventManagement.entity.FeedBack;
 import co.muhu.eventManagement.model.FeedBackRegistrationDto;
+import org.springframework.stereotype.Component;
 
+@Component
 public class FeedBackMapperImpl implements FeedBackMapper {
     @Override
     public FeedBack feedBackRegistrationDtoToFeedBack(FeedBackRegistrationDto feedBackRegistrationDto) {
