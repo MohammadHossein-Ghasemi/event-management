@@ -1,9 +1,14 @@
 package co.muhu.eventManagement.service;
 
 import co.muhu.eventManagement.entity.Participant;
+import co.muhu.eventManagement.exception.ResourceNotFoundException;
+import co.muhu.eventManagement.mappers.participant.ParticipantMapper;
+import co.muhu.eventManagement.model.ParticipantRegistrationDto;
+import co.muhu.eventManagement.repository.EventRepository;
 import co.muhu.eventManagement.repository.ParticipantRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.PutMapping;
 
 import java.util.List;
 import java.util.Optional;
@@ -13,6 +18,8 @@ import java.util.concurrent.atomic.AtomicReference;
 @RequiredArgsConstructor
 public class ParticipantServiceImpl implements ParticipantService {
     private final ParticipantRepository participantRepository;
+    private final EventRepository eventRepository;
+    private final ParticipantMapper participantMapper;
     @Override
     public List<Participant> getAllParticipants() {
         return participantRepository.findAll();
@@ -25,8 +32,8 @@ public class ParticipantServiceImpl implements ParticipantService {
     }
 
     @Override
-    public Participant createParticipant(Participant participant) {
-
+    public Participant createParticipant(ParticipantRegistrationDto participantRegistrationDto) {
+        Participant participant = participantMapper.participantRegistrationDtoToParticipant(participantRegistrationDto);
         return participantRepository.save(participant);
     }
 
@@ -63,6 +70,9 @@ public class ParticipantServiceImpl implements ParticipantService {
 
     @Override
     public List<Participant> getParticipantsByEventId(Long eventId) {
+        if (!eventRepository.existsById(eventId)){
+            throw new ResourceNotFoundException("There is no event with this id : "+eventId);
+        }
         return participantRepository.findAllByEventSetId(eventId);
     }
 }
