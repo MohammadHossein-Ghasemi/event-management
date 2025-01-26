@@ -2,6 +2,7 @@ package co.muhu.eventManagement.service;
 
 import co.muhu.eventManagement.entity.Member;
 import co.muhu.eventManagement.mappers.member.MemberMapper;
+import co.muhu.eventManagement.model.MemberDto;
 import co.muhu.eventManagement.model.MemberRegistrationDto;
 import co.muhu.eventManagement.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
@@ -16,27 +17,33 @@ import java.util.concurrent.atomic.AtomicReference;
 @RequiredArgsConstructor
 public class MemberServiceImpl implements MemberService {
     private final MemberRepository memberRepository;
-    private final MemberMapper memberMapper;
+
     @Override
-    public List<Member> getAllMembers() {
-        return memberRepository.findAll();
+    public List<MemberDto> getAllMembers() {
+
+        return memberRepository.findAll()
+                .stream()
+                .map(MemberMapper::memberToMemberDto)
+                .toList();
     }
 
     @Override
-    public Optional<Member> getMemberById(Long id)
+    public Optional<MemberDto> getMemberById(Long id)
     {
-        return memberRepository.findById(id);
+
+        return memberRepository.findById(id)
+                .map(MemberMapper::memberToMemberDto);
     }
 
     @Override
-    public Member createMember(MemberRegistrationDto memberRegistrationDto) {
-        Member member = memberMapper.memberRegistrationDtoToMember(memberRegistrationDto);
-        return memberRepository.save(member);
+    public MemberDto createMember(MemberRegistrationDto memberRegistrationDto) {
+        Member member = MemberMapper.memberRegistrationDtoToMember(memberRegistrationDto);
+        return MemberMapper.memberToMemberDto(memberRepository.save(member));
     }
 
     @Override
-    public Optional<Member> updateMemberById(Long id, Member member) {
-        AtomicReference<Optional<Member>> foundedMember =new AtomicReference<>();
+    public Optional<MemberDto> updateMemberById(Long id, Member member) {
+        AtomicReference<Optional<MemberDto>> foundedMember =new AtomicReference<>();
         memberRepository.findById(id).ifPresentOrElse(
                 updatedMember->{
                     updatedMember.setEmail(member.getEmail());
@@ -45,7 +52,7 @@ public class MemberServiceImpl implements MemberService {
                     updatedMember.setPhoneNumber(member.getPhoneNumber());
                     updatedMember.setOrganizedEvents(member.getOrganizedEvents());
                     updatedMember.setParticipatedEvents(member.getParticipatedEvents());
-                    foundedMember.set(Optional.of(memberRepository.save(updatedMember)));
+                    foundedMember.set(Optional.of(MemberMapper.memberToMemberDto(memberRepository.save(updatedMember))));
                 },
                 ()->foundedMember.set(Optional.empty())
         );
@@ -62,8 +69,10 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
-    public Optional<Member> getMemberByEmail(String email) {
-        return memberRepository.findByEmail(email);
+    public Optional<MemberDto> getMemberByEmail(String email) {
+
+        return memberRepository.findByEmail(email)
+                .map(MemberMapper::memberToMemberDto);
     }
 
     @Override
@@ -77,8 +86,8 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
-    public Optional<Member> updateMemberByEmail(String email, Member member) {
-        AtomicReference<Optional<Member>> foundedMember =new AtomicReference<>();
+    public Optional<MemberDto> updateMemberByEmail(String email, Member member) {
+        AtomicReference<Optional<MemberDto>> foundedMember =new AtomicReference<>();
         memberRepository.findByEmail(email).ifPresentOrElse(
                 updatedMember->{
                     updatedMember.setLastName(member.getLastName());
@@ -86,7 +95,7 @@ public class MemberServiceImpl implements MemberService {
                     updatedMember.setPhoneNumber(member.getPhoneNumber());
                     updatedMember.setOrganizedEvents(member.getOrganizedEvents());
                     updatedMember.setParticipatedEvents(member.getParticipatedEvents());
-                    foundedMember.set(Optional.of(memberRepository.save(updatedMember)));
+                    foundedMember.set(Optional.of(MemberMapper.memberToMemberDto(memberRepository.save(updatedMember))));
                 },
                 ()->foundedMember.set(Optional.empty())
         );
