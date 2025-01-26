@@ -3,7 +3,6 @@ package co.muhu.eventManagement.service;
 import co.muhu.eventManagement.entity.*;
 import co.muhu.eventManagement.exception.ResourceNotFoundException;
 import co.muhu.eventManagement.mappers.event.EventMapper;
-import co.muhu.eventManagement.mappers.event.EventMapperImpl;
 import co.muhu.eventManagement.model.EventRegistrationDto;
 import co.muhu.eventManagement.repository.*;
 import org.junit.jupiter.api.AfterEach;
@@ -43,7 +42,7 @@ class EventServiceImplTest {
 
     @BeforeEach
     void setUp(){
-        eventMapper = new EventMapperImpl();
+        eventMapper = new EventMapper();
         eventRegistrationDto = new EventRegistrationDto();
         autoCloseable= MockitoAnnotations.openMocks(this);
         eventServiceTest=new EventServiceImpl(

@@ -2,6 +2,7 @@ package co.muhu.eventManagement.controller;
 
 import co.muhu.eventManagement.entity.Event;
 import co.muhu.eventManagement.exception.ResourceNotFoundException;
+import co.muhu.eventManagement.model.EventDto;
 import co.muhu.eventManagement.model.EventRegistrationDto;
 import co.muhu.eventManagement.service.EventService;
 import lombok.RequiredArgsConstructor;
@@ -21,8 +22,9 @@ public class EventController {
     private final EventService eventService;
 
     @GetMapping(value = EVENT_PATH)
-    public ResponseEntity<List<Event>> getAllEvents(){
-        List<Event> allEvents = eventService.getAllEvents();
+    public ResponseEntity<List<EventDto>> getAllEvents(){
+        List<EventDto> allEvents = eventService.getAllEvents();
+
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .header(HttpHeaders.LOCATION,EVENT_PATH)
@@ -30,8 +32,8 @@ public class EventController {
     }
 
     @GetMapping(value = EVENT_PATH_ID)
-    public ResponseEntity<Event> getEventById(@PathVariable("eventId") Long eventId){
-        Event event = eventService.getEventById(eventId)
+    public ResponseEntity<EventDto> getEventById(@PathVariable("eventId") Long eventId){
+        EventDto event = eventService.getEventById(eventId)
                 .orElseThrow(()->new ResourceNotFoundException("There is no event with this id:"+eventId));
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -40,8 +42,9 @@ public class EventController {
     }
 
     @PostMapping(value = EVENT_PATH)
-    public ResponseEntity<Event> saveEvent(@Validated @RequestBody EventRegistrationDto event){
-        Event savedEvent = eventService.createEvent(event);
+    public ResponseEntity<EventDto> saveEvent(@Validated @RequestBody EventRegistrationDto event){
+        event.getParticipantSet().forEach(System.out::println);
+        EventDto savedEvent = eventService.createEvent(event);
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .header(HttpHeaders.LOCATION,EVENT_PATH+"/"+savedEvent.getId())
@@ -49,15 +52,16 @@ public class EventController {
     }
 
     @PutMapping(value = EVENT_PATH_ID)
-    public ResponseEntity<Event> updateEvent(@Validated @RequestBody Event event ,
+    public ResponseEntity<EventDto> updateEvent(@Validated @RequestBody Event event ,
                                              @PathVariable Long eventId){
-        Event updateEvent = eventService.updateEvent(eventId, event)
+        EventDto updateEvent = eventService.updateEvent(eventId, event)
                 .orElseThrow(()->new ResourceNotFoundException("There is no event with this id:"+eventId));
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .header(HttpHeaders.LOCATION,EVENT_PATH+"/"+eventId)
                 .body(updateEvent);
     }
+
     @DeleteMapping(EVENT_PATH_ID)
     public ResponseEntity<?> deleteEvent(@PathVariable("eventId") Long eventId){
         boolean isDeleted = eventService.deleteEventById(eventId);

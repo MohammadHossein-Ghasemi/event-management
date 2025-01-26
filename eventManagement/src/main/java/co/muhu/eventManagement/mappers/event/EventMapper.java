@@ -1,8 +1,63 @@
 package co.muhu.eventManagement.mappers.event;
 
 import co.muhu.eventManagement.entity.Event;
-import co.muhu.eventManagement.model.EventRegistrationDto;
+import co.muhu.eventManagement.mappers.feedback.FeedBackMapper;
+import co.muhu.eventManagement.mappers.participant.ParticipantMapper;
+import co.muhu.eventManagement.mappers.ticket.TicketMapper;
+import co.muhu.eventManagement.model.*;
+import org.springframework.stereotype.Component;
 
-public interface EventMapper {
-    Event EventRegistrationDtoToEvent(EventRegistrationDto eventRegistrationDto);
+import java.util.List;
+
+@Component
+public class EventMapper{
+
+    public static Event eventRegistrationDtoToEvent(EventRegistrationDto eventRegistrationDto) {
+        return Event.builder()
+                .name(eventRegistrationDto.getName())
+                .description(eventRegistrationDto.getDescription())
+                .location(eventRegistrationDto.getLocation())
+                .startTime(eventRegistrationDto.getStartTime())
+                .endTime(eventRegistrationDto.getEndTime())
+                .member(eventRegistrationDto.getMember())
+                .organizer(eventRegistrationDto.getOrganizer())
+                .venue(eventRegistrationDto.getVenue())
+                .participantSet(eventRegistrationDto.getParticipantSet())
+                .build();
+    }
+
+    public static EventDto eventToEventDto(Event event) {
+
+        List<ParticipantDto> participantDtoList = event.getParticipantSet()
+                .stream()
+                .map(ParticipantMapper::participantToParticipantDto)
+                .toList();
+
+        List<TicketDto> ticketDtoList = event.getTicketSet()
+                .stream()
+                .map(TicketMapper::ticketToTicketDto)
+                .toList();
+
+        List<FeedBackDto> feedBackDtoList = event.getFeedBackSet()
+                .stream()
+                .map(FeedBackMapper::feedBackToFeedBackDto)
+                .toList();
+
+        return EventDto.builder()
+                .id(event.getId())
+                .name(event.getName())
+                .description(event.getName())
+                .location(event.getLocation())
+                .startTime(event.getStartTime())
+                .endTime(event.getEndTime())
+                .createdTime(event.getCreatedTime())
+                .updatedTime(event.getUpdatedTime())
+                .memberId(event.getMember().getId())
+                .organizerId(event.getOrganizer().getId())
+                .venueId(event.getVenue().getId())
+                .participantIds(participantDtoList)
+                .ticketIds(ticketDtoList)
+                .feedbackIds(feedBackDtoList)
+                .build();
+    }
 }

@@ -3,6 +3,7 @@ package co.muhu.eventManagement.service;
 import co.muhu.eventManagement.entity.Event;
 import co.muhu.eventManagement.exception.ResourceNotFoundException;
 import co.muhu.eventManagement.mappers.event.EventMapper;
+import co.muhu.eventManagement.model.EventDto;
 import co.muhu.eventManagement.model.EventRegistrationDto;
 import co.muhu.eventManagement.repository.*;
 import lombok.RequiredArgsConstructor;
@@ -20,21 +21,26 @@ public class EventServiceImpl implements EventService {
     private final OrganizerRepository organizerRepository;
     private final VenueRepository venueRepository;
     private final ParticipantRepository participantRepository;
-    private final EventMapper eventMapper;
 
     @Override
-    public List<Event> getAllEvents() {
-        return eventRepository.findAll();
+    public List<EventDto> getAllEvents() {
+
+        return eventRepository.findAll()
+                .stream()
+                .map(EventMapper::eventToEventDto)
+                .toList();
     }
 
     @Override
-    public Optional<Event> getEventById(Long id) {
-        return eventRepository.findById(id);
+    public Optional<EventDto> getEventById(Long id) {
+
+        return eventRepository.findById(id)
+                .map(EventMapper::eventToEventDto);
     }
 
     @Override
-    public Event createEvent(EventRegistrationDto event) {
-        Event mappedEvent = eventMapper.EventRegistrationDtoToEvent(event);
+    public EventDto createEvent(EventRegistrationDto event) {
+        Event mappedEvent = EventMapper.eventRegistrationDtoToEvent(event);
 
         if (mappedEvent.getMember()==null||mappedEvent.getMember().getId() == null || !memberRepository.existsById(mappedEvent.getMember().getId())) {
             throw new ResourceNotFoundException("Invalid member. Register the member first.");
@@ -57,13 +63,13 @@ public class EventServiceImpl implements EventService {
             }
         });
 
-        return eventRepository.save(mappedEvent);
+        return EventMapper.eventToEventDto(eventRepository.save(mappedEvent));
     }
 
 
     @Override
-    public Optional<Event> updateEvent(Long id, Event event) {
-        AtomicReference<Optional<Event>> foundedEvent = new AtomicReference<>() ;
+    public Optional<EventDto> updateEvent(Long id, Event event) {
+        AtomicReference<Optional<EventDto>> foundedEvent = new AtomicReference<>() ;
 
         eventRepository.findById(id).ifPresentOrElse( existingEvent-> {
             existingEvent.setName(event.getName());
@@ -78,7 +84,7 @@ public class EventServiceImpl implements EventService {
             existingEvent.setTicketSet(event.getTicketSet());
             existingEvent.setVenue(event.getVenue());
             existingEvent.setFeedBackSet(event.getFeedBackSet());
-            foundedEvent.set(Optional.of(eventRepository.save(existingEvent)));
+            foundedEvent.set(Optional.of(EventMapper.eventToEventDto(eventRepository.save(existingEvent))));
             },
                 ()->{foundedEvent.set(Optional.empty());}
         );
