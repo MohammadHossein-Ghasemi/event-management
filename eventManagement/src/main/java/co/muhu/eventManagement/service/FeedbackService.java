@@ -10,7 +10,7 @@ import java.util.Optional;
 public interface FeedbackService {
     List<FeedBackDto> getAllFeedbacks();
     Optional<FeedBackDto> getFeedbackById(Long id);
-    FeedBack createFeedback(FeedBackRegistrationDto feedBackRegistrationDto);
+    FeedBackDto createFeedback(FeedBackRegistrationDto feedBackRegistrationDto);
     Optional<FeedBackDto> updateFeedback(Long id,FeedBack feedBack);
     boolean deleteFeedbackById(Long id);
     List<FeedBackDto> getAllFeedbacksByEventId(Long eventId);

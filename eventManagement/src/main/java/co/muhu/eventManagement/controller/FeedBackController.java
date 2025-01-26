@@ -41,8 +41,8 @@ public class FeedBackController {
     }
 
     @PostMapping(value = FEEDBACK_PATH)
-    public ResponseEntity<FeedBack> saveFeedBack(@Validated @RequestBody FeedBackRegistrationDto feedBackRegistrationDto){
-        FeedBack savedFeedBack=feedbackService.createFeedback(feedBackRegistrationDto);
+    public ResponseEntity<FeedBackDto> saveFeedBack(@Validated @RequestBody FeedBackRegistrationDto feedBackRegistrationDto){
+        FeedBackDto savedFeedBack=feedbackService.createFeedback(feedBackRegistrationDto);
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .header(HttpHeaders.LOCATION,FEEDBACK_PATH)

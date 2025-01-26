@@ -40,7 +40,7 @@ public class FeedbackServiceImpl implements FeedbackService {
     }
 
     @Override
-    public FeedBack createFeedback(FeedBackRegistrationDto feedBackRegistrationDto) {
+    public FeedBackDto createFeedback(FeedBackRegistrationDto feedBackRegistrationDto) {
         Event event = checkingFeedBackEventValidate(feedBackRegistrationDto)
                 .orElseThrow(()-> new ResourceNotFoundException("Invalid event. Register the event first."));
         Participant participant = checkingFeedBackParticipantValidate(feedBackRegistrationDto)
@@ -50,7 +50,7 @@ public class FeedbackServiceImpl implements FeedbackService {
         feedBack.setEvent(event);
         feedBack.setParticipant(participant);
 
-        return feedBackRepository.save(feedBack);
+        return FeedBackMapper.feedBackToFeedBackDto(feedBackRepository.save(feedBack));
     }
 
     private Optional<Event> checkingFeedBackEventValidate(FeedBackRegistrationDto feedBackRegistrationDto){
