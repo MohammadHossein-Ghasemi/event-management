@@ -2,6 +2,7 @@ package co.muhu.eventManagement.controller;
 
 import co.muhu.eventManagement.entity.Participant;
 import co.muhu.eventManagement.exception.ResourceNotFoundException;
+import co.muhu.eventManagement.model.ParticipantDto;
 import co.muhu.eventManagement.model.ParticipantRegistrationDto;
 import co.muhu.eventManagement.service.ParticipantService;
 import lombok.RequiredArgsConstructor;
@@ -12,7 +13,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequiredArgsConstructor
@@ -22,16 +22,16 @@ public class ParticipantController {
     public static final String PARTICIPANT_PATH_ID="/api/v1/participant/{participantId}";
 
     @GetMapping(value = PARTICIPANT_PATH)
-    public ResponseEntity<List<Participant>> getAllParticipant(){
-        List<Participant> participantList = participantService.getAllParticipants();
+    public ResponseEntity<List<ParticipantDto>> getAllParticipant(){
+        List<ParticipantDto> participantList = participantService.getAllParticipants();
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .header(HttpHeaders.LOCATION,PARTICIPANT_PATH)
                 .body(participantList);
     }
     @GetMapping(value = PARTICIPANT_PATH_ID)
-    public ResponseEntity<Participant> getParticipantById(@PathVariable Long participantId){
-        Participant foundedParticipant = participantService.getParticipantById(participantId)
+    public ResponseEntity<ParticipantDto> getParticipantById(@PathVariable Long participantId){
+        ParticipantDto foundedParticipant = participantService.getParticipantById(participantId)
                 .orElseThrow(()-> new ResourceNotFoundException("There no participant with this id : "+participantId));
 
         return ResponseEntity
@@ -41,8 +41,8 @@ public class ParticipantController {
     }
 
     @PostMapping(value = PARTICIPANT_PATH)
-    public ResponseEntity<Participant> saveParticipant(@Validated @RequestBody ParticipantRegistrationDto participantRegistrationDto){
-        Participant savedParticipant=participantService.createParticipant(participantRegistrationDto);
+    public ResponseEntity<ParticipantDto> saveParticipant(@Validated @RequestBody ParticipantRegistrationDto participantRegistrationDto){
+        ParticipantDto savedParticipant=participantService.createParticipant(participantRegistrationDto);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -51,9 +51,9 @@ public class ParticipantController {
     }
 
     @PutMapping(value = PARTICIPANT_PATH_ID)
-    public ResponseEntity<Participant> updateParticipant(@Validated @RequestBody Participant participant,
+    public ResponseEntity<ParticipantDto> updateParticipant(@Validated @RequestBody Participant participant,
                                                          @PathVariable Long participantId){
-        Participant updatedParticipant= participantService.updateParticipant(participantId,participant)
+        ParticipantDto updatedParticipant= participantService.updateParticipant(participantId,participant)
                 .orElseThrow(()-> new ResourceNotFoundException("There is no participant with this id : "+participantId));
 
         return ResponseEntity
@@ -75,8 +75,8 @@ public class ParticipantController {
     }
 
     @GetMapping(value = PARTICIPANT_PATH+"/event/{eventId}")
-    public ResponseEntity<List<Participant>> getAllParticipantByEventId(@PathVariable Long eventId){
-        List<Participant> participantList = participantService.getParticipantsByEventId(eventId);
+    public ResponseEntity<List<ParticipantDto>> getAllParticipantByEventId(@PathVariable Long eventId){
+        List<ParticipantDto> participantList = participantService.getParticipantsByEventId(eventId);
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .header(HttpHeaders.LOCATION,PARTICIPANT_PATH)

@@ -3,12 +3,12 @@ package co.muhu.eventManagement.service;
 import co.muhu.eventManagement.entity.Participant;
 import co.muhu.eventManagement.exception.ResourceNotFoundException;
 import co.muhu.eventManagement.mappers.participant.ParticipantMapper;
+import co.muhu.eventManagement.model.ParticipantDto;
 import co.muhu.eventManagement.model.ParticipantRegistrationDto;
 import co.muhu.eventManagement.repository.EventRepository;
 import co.muhu.eventManagement.repository.ParticipantRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.PutMapping;
 
 import java.util.List;
 import java.util.Optional;
@@ -19,27 +19,32 @@ import java.util.concurrent.atomic.AtomicReference;
 public class ParticipantServiceImpl implements ParticipantService {
     private final ParticipantRepository participantRepository;
     private final EventRepository eventRepository;
-    private final ParticipantMapper participantMapper;
+
     @Override
-    public List<Participant> getAllParticipants() {
-        return participantRepository.findAll();
+    public List<ParticipantDto> getAllParticipants() {
+
+        return participantRepository.findAll()
+                .stream()
+                .map(ParticipantMapper::participantToParticipantDto)
+                .toList();
     }
 
     @Override
-    public Optional<Participant> getParticipantById(Long id) {
+    public Optional<ParticipantDto> getParticipantById(Long id) {
 
-        return participantRepository.findById(id);
+        return participantRepository.findById(id)
+                .map(ParticipantMapper::participantToParticipantDto);
     }
 
     @Override
-    public Participant createParticipant(ParticipantRegistrationDto participantRegistrationDto) {
-        Participant participant = participantMapper.participantRegistrationDtoToParticipant(participantRegistrationDto);
-        return participantRepository.save(participant);
+    public ParticipantDto createParticipant(ParticipantRegistrationDto participantRegistrationDto) {
+        Participant participant = ParticipantMapper.participantRegistrationDtoToParticipant(participantRegistrationDto);
+        return ParticipantMapper.participantToParticipantDto(participantRepository.save(participant));
     }
 
     @Override
-    public Optional<Participant> updateParticipant(Long id, Participant participant) {
-        AtomicReference<Optional<Participant>> foundedParticipant = new AtomicReference<>();
+    public Optional<ParticipantDto> updateParticipant(Long id, Participant participant) {
+        AtomicReference<Optional<ParticipantDto>> foundedParticipant = new AtomicReference<>();
 
         participantRepository.findById(id).ifPresentOrElse(
                 updatedParticipant->{
@@ -51,7 +56,7 @@ public class ParticipantServiceImpl implements ParticipantService {
                     updatedParticipant.setEventSet(participant.getEventSet());
                     updatedParticipant.setTicketSet(participant.getTicketSet());
                     updatedParticipant.setFeedBackSet(participant.getFeedBackSet());
-                    foundedParticipant.set(Optional.of(participantRepository.save(updatedParticipant)));
+                    foundedParticipant.set(Optional.of(ParticipantMapper.participantToParticipantDto(participantRepository.save(updatedParticipant))));
                 },
                 ()->foundedParticipant.set(Optional.empty())
         );
@@ -69,10 +74,13 @@ public class ParticipantServiceImpl implements ParticipantService {
     }
 
     @Override
-    public List<Participant> getParticipantsByEventId(Long eventId) {
+    public List<ParticipantDto> getParticipantsByEventId(Long eventId) {
         if (!eventRepository.existsById(eventId)){
             throw new ResourceNotFoundException("There is no event with this id : "+eventId);
         }
-        return participantRepository.findAllByEventSetId(eventId);
+        return participantRepository.findAllByEventSetId(eventId)
+                .stream()
+                .map(ParticipantMapper::participantToParticipantDto)
+                .toList();
     }
 }
