@@ -1,8 +1,11 @@
 package co.muhu.eventManagement.service;
 
 import co.muhu.eventManagement.entity.Event;
+import co.muhu.eventManagement.entity.Participant;
 import co.muhu.eventManagement.entity.Ticket;
 import co.muhu.eventManagement.exception.ResourceNotFoundException;
+import co.muhu.eventManagement.mappers.ticket.TicketMapper;
+import co.muhu.eventManagement.model.TicketRegistrationDto;
 import co.muhu.eventManagement.repository.EventRepository;
 import co.muhu.eventManagement.repository.ParticipantRepository;
 import co.muhu.eventManagement.repository.TicketRepository;
@@ -19,6 +22,7 @@ public class TicketServiceImpl implements TicketService {
     private final TicketRepository ticketRepository;
     private final EventRepository eventRepository;
     private final ParticipantRepository participantRepository;
+    private final TicketMapper ticketMapper;
 
     @Override
     public List<Ticket> getAllTickets() {
@@ -32,12 +36,31 @@ public class TicketServiceImpl implements TicketService {
     }
 
     @Override
-    public Ticket createTicket(Ticket ticket) {
-        Long eventId = ticket.getEvent().getId();
-        if (!eventRepository.existsById(eventId)){
-            throw new ResourceNotFoundException("There is no event with id :"+eventId);
-        }
+    public Ticket createTicket(TicketRegistrationDto ticketRegistrationDto) {
+        Event existedEvent = validateTicketEvent(ticketRegistrationDto)
+                .orElseThrow(()->new ResourceNotFoundException("There is no event with id :"+ticketRegistrationDto.getEvent().getId()));
+
+        Participant existedParticipant = validateTicketParticipant(ticketRegistrationDto)
+                .orElseThrow(()->new ResourceNotFoundException("There is no participant with id :"+ticketRegistrationDto.getParticipant().getId()));
+
+        Ticket ticket = ticketMapper.ticketRegistrationDtoToTicket(ticketRegistrationDto);
+        ticket.setEvent(existedEvent);;
+        ticket.setParticipant(existedParticipant);
+
         return ticketRepository.save(ticket);
+    }
+
+    private Optional<Event> validateTicketEvent(TicketRegistrationDto ticketRegistrationDto){
+        if (ticketRegistrationDto.getEvent()==null || ticketRegistrationDto.getEvent().getId()==null|| !eventRepository.existsById(ticketRegistrationDto.getEvent().getId())){
+            return Optional.empty();
+        }
+        return eventRepository.findById(ticketRegistrationDto.getEvent().getId());
+    }
+    private Optional<Participant> validateTicketParticipant(TicketRegistrationDto ticketRegistrationDto){
+        if (ticketRegistrationDto.getParticipant()==null || ticketRegistrationDto.getParticipant().getId()==null|| !participantRepository.existsById(ticketRegistrationDto.getParticipant().getId())){
+            return Optional.empty();
+        }
+        return participantRepository.findById(ticketRegistrationDto.getParticipant().getId());
     }
 
     @Override
@@ -78,7 +101,7 @@ public class TicketServiceImpl implements TicketService {
     @Override
     public List<Ticket> getTicketsByParticipantId(Long participantId) {
         if (!participantRepository.existsById(participantId)){
-            throw new ResourceNotFoundException("There is no event with id :"+participantId);
+            throw new ResourceNotFoundException("There is no participant with id :"+participantId);
         }
         return ticketRepository.findAllByParticipantId(participantId);
     }
