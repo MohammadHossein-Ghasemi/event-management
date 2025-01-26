@@ -1,8 +1,8 @@
 package co.muhu.eventManagement.service;
 
 import co.muhu.eventManagement.entity.Venue;
-import co.muhu.eventManagement.exception.ResourceNotFoundException;
-import co.muhu.eventManagement.repository.EventRepository;
+import co.muhu.eventManagement.mappers.venue.VenueMapper;
+import co.muhu.eventManagement.model.VenueRegistrationDto;
 import co.muhu.eventManagement.repository.VenueRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -15,7 +15,7 @@ import java.util.concurrent.atomic.AtomicReference;
 @AllArgsConstructor
 public class VenueServiceImpl implements VenueService {
     private final VenueRepository venueRepository;
-    private final EventRepository eventRepository;
+    private final VenueMapper venueMapper;
 
     @Override
     public List<Venue> getAllVenues() {
@@ -28,12 +28,8 @@ public class VenueServiceImpl implements VenueService {
     }
 
     @Override
-    public Venue createVenue(Venue venue) {
-        boolean allEventCheck = venue.getEventSet().stream()
-                .allMatch(event -> eventRepository.existsById(event.getId()));
-        if (!allEventCheck){
-            throw new ResourceNotFoundException("One or more associated events do not exist.");
-        }
+    public Venue createVenue(VenueRegistrationDto venueRegistrationDto) {
+        Venue venue = venueMapper.venueRegistrationDtoToVenue(venueRegistrationDto);
         return venueRepository.save(venue);
     }
 
