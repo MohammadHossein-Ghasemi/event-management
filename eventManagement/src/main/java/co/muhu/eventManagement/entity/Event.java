@@ -2,17 +2,15 @@ package co.muhu.eventManagement.entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 import java.util.Set;
 
-@Data
+@Getter
+@Setter
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
@@ -44,14 +42,14 @@ public class Event {
 
     @ManyToMany
     @JoinTable(name = "event_member",
-            joinColumns = @JoinColumn(name = "member_id"),
-            inverseJoinColumns = @JoinColumn(name = "event_id"))
+            joinColumns = @JoinColumn(name = "event_id"),
+            inverseJoinColumns = @JoinColumn(name = "member_id"))
     private Set<Member> memberset;
 
     @ManyToMany
     @JoinTable(name = "event_participant",
-            joinColumns = @JoinColumn(name = "participant_id"),
-            inverseJoinColumns = @JoinColumn(name = "event_id"))
+            joinColumns = @JoinColumn(name = "event_id"),
+            inverseJoinColumns = @JoinColumn(name = "participant_id"))
     private Set<Participant> participantSet;
 
     @ManyToOne
