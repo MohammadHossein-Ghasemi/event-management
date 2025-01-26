@@ -2,6 +2,8 @@ package co.muhu.eventManagement.service;
 
 import co.muhu.eventManagement.entity.Organizer;
 import co.muhu.eventManagement.exception.ResourceNotFoundException;
+import co.muhu.eventManagement.mappers.organizer.OrganizerMapper;
+import co.muhu.eventManagement.model.OrganizerRegistrationDto;
 import co.muhu.eventManagement.repository.EventRepository;
 import co.muhu.eventManagement.repository.OrganizerRepository;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +18,7 @@ import java.util.concurrent.atomic.AtomicReference;
 public class OrganizerServiceImpl implements OrganizerService {
     private final OrganizerRepository organizerRepository;
     private final EventRepository eventRepository;
+    private final OrganizerMapper organizerMapper;
     @Override
     public List<Organizer> getAllOrganizers() {
         return organizerRepository.findAll();
@@ -28,7 +31,8 @@ public class OrganizerServiceImpl implements OrganizerService {
     }
 
     @Override
-    public Organizer createOrganizer(Organizer organizer) {
+    public Organizer createOrganizer(OrganizerRegistrationDto organizerRegistrationDto) {
+        Organizer organizer = organizerMapper.organizerRegistrationDtoToOrganizer(organizerRegistrationDto);
         return organizerRepository.save(organizer);
     }
 
