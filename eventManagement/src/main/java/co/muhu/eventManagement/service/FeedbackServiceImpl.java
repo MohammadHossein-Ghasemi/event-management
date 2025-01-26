@@ -5,6 +5,7 @@ import co.muhu.eventManagement.entity.FeedBack;
 import co.muhu.eventManagement.entity.Participant;
 import co.muhu.eventManagement.exception.ResourceNotFoundException;
 import co.muhu.eventManagement.mappers.feedback.FeedBackMapper;
+import co.muhu.eventManagement.model.FeedBackDto;
 import co.muhu.eventManagement.model.FeedBackRegistrationDto;
 import co.muhu.eventManagement.repository.EventRepository;
 import co.muhu.eventManagement.repository.FeedBackRepository;
@@ -12,11 +13,10 @@ import co.muhu.eventManagement.repository.ParticipantRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -24,53 +24,51 @@ public class FeedbackServiceImpl implements FeedbackService {
     private final FeedBackRepository feedBackRepository;
     private final EventRepository eventRepository;
     private final ParticipantRepository participantRepository;
-    private final FeedBackMapper feedBackMapper;
 
     @Override
-    public List<FeedBack> getAllFeedbacks() {
-        return feedBackRepository.findAll();
+    public List<FeedBackDto> getAllFeedbacks() {
+        return feedBackRepository.findAll()
+                .stream()
+                .map(FeedBackMapper::feedBackToFeedBackDto)
+                .collect(Collectors.toList());
     }
 
 
     @Override
-    public Optional<FeedBack> getFeedbackById(Long id) {
-        return feedBackRepository.findById(id);
+    public Optional<FeedBackDto> getFeedbackById(Long id) {
+        return feedBackRepository.findById(id).map(FeedBackMapper::feedBackToFeedBackDto);
     }
 
     @Override
     public FeedBack createFeedback(FeedBackRegistrationDto feedBackRegistrationDto) {
-        FeedBack feedBack = feedBackMapper.feedBackRegistrationDtoToFeedBack(feedBackRegistrationDto);
+        Event event = checkingFeedBackEventValidate(feedBackRegistrationDto)
+                .orElseThrow(()-> new ResourceNotFoundException("Invalid event. Register the event first."));
+        Participant participant = checkingFeedBackParticipantValidate(feedBackRegistrationDto)
+                .orElseThrow(()-> new ResourceNotFoundException("Invalid participant. Register the participant first."));
 
-        if (!checkingFeedBackEventValidate(feedBack)){
-            throw new ResourceNotFoundException("Invalid event. Register the event first.");
-        }
-        if (!checkingFeedBackParticipantValidate(feedBack)){
-            throw new ResourceNotFoundException("Invalid existParticipant. Register the event first.");
-        }
+        FeedBack feedBack = FeedBackMapper.feedBackRegistrationDtoToFeedBack(feedBackRegistrationDto);
+        feedBack.setEvent(event);
+        feedBack.setParticipant(participant);
 
-        Event existedEvent = eventRepository.findById(feedBack.getEvent().getId()).get();
-        Participant existParticipant = participantRepository.findById(feedBack.getParticipant().getId()).get();
-        feedBack.setEvent(existedEvent);
-        feedBack.setParticipant(existParticipant);
         return feedBackRepository.save(feedBack);
     }
 
-    private boolean checkingFeedBackEventValidate(FeedBack feedBack){
-        if ((feedBack.getEvent()==null)||(feedBack.getEvent().getId()==null)||(!eventRepository.existsById(feedBack.getEvent().getId()))){
-            return false;
+    private Optional<Event> checkingFeedBackEventValidate(FeedBackRegistrationDto feedBackRegistrationDto){
+        if ((feedBackRegistrationDto.getEvent()==null)||(feedBackRegistrationDto.getEvent().getId()==null)||(!eventRepository.existsById(feedBackRegistrationDto.getEvent().getId()))){
+            return Optional.empty();
         }
-        return true;
+        return eventRepository.findById(feedBackRegistrationDto.getEvent().getId());
     }
-    private boolean checkingFeedBackParticipantValidate(FeedBack feedBack){
-        if ((feedBack.getParticipant()==null)||(feedBack.getParticipant().getId()==null)||(!participantRepository.existsById(feedBack.getParticipant().getId()))){
-            return false;
+    private Optional<Participant> checkingFeedBackParticipantValidate(FeedBackRegistrationDto feedBackRegistrationDto){
+        if ((feedBackRegistrationDto.getParticipant()==null)||(feedBackRegistrationDto.getParticipant().getId()==null)||(!participantRepository.existsById(feedBackRegistrationDto.getParticipant().getId()))){
+            return Optional.empty();
         }
-        return true;
+        return participantRepository.findById(feedBackRegistrationDto.getParticipant().getId());
     }
 
     @Override
-    public Optional<FeedBack> updateFeedback(Long id, FeedBack feedBack) {
-        AtomicReference<Optional<FeedBack>> foundedFeedBack= new AtomicReference<>();
+    public Optional<FeedBackDto> updateFeedback(Long id, FeedBack feedBack) {
+        AtomicReference<Optional<FeedBackDto>> foundedFeedBack= new AtomicReference<>();
         feedBackRepository.findById(id).ifPresentOrElse(
                 updateFeedback->{
                     updateFeedback.setComments(feedBack.getComments());
@@ -78,7 +76,7 @@ public class FeedbackServiceImpl implements FeedbackService {
                     updateFeedback.setRating(feedBack.getRating());
                     updateFeedback.setParticipant(feedBack.getParticipant());
                     updateFeedback.setSubmittedDate(feedBack.getSubmittedDate());
-                    foundedFeedBack.set(Optional.of(feedBackRepository.save(updateFeedback)));
+                    foundedFeedBack.set(Optional.of(FeedBackMapper.feedBackToFeedBackDto(feedBackRepository.save(updateFeedback))));
                 },()-> foundedFeedBack.set(Optional.empty())
         );
         return foundedFeedBack.get();
@@ -94,18 +92,22 @@ public class FeedbackServiceImpl implements FeedbackService {
     }
 
     @Override
-    public List<FeedBack> getAllFeedbacksByEventId(Long eventId) {
+    public List<FeedBackDto> getAllFeedbacksByEventId(Long eventId) {
         if (!eventRepository.existsById(eventId)){
             throw new ResourceNotFoundException("There is no event with this id : "+eventId);
         }
-        return feedBackRepository.findAllByEventId(eventId);
+        return feedBackRepository.findAllByEventId(eventId).stream()
+                .map(FeedBackMapper::feedBackToFeedBackDto)
+                .collect(Collectors.toList());
     }
 
     @Override
-    public List<FeedBack> getAllFeedBacksByParticipantId(Long participantId) {
+    public List<FeedBackDto> getAllFeedBacksByParticipantId(Long participantId) {
         if (!participantRepository.existsById(participantId)){
             throw new ResourceNotFoundException("There is no participant with this id : "+participantId);
         }
-        return feedBackRepository.findAllByParticipantId(participantId);
+        return feedBackRepository.findAllByParticipantId(participantId).stream()
+                .map(FeedBackMapper::feedBackToFeedBackDto)
+                .collect(Collectors.toList());
     }
 }
