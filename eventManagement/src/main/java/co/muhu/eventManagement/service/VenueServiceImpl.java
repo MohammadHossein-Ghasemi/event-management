@@ -2,6 +2,7 @@ package co.muhu.eventManagement.service;
 
 import co.muhu.eventManagement.entity.Venue;
 import co.muhu.eventManagement.mappers.venue.VenueMapper;
+import co.muhu.eventManagement.model.VenueDto;
 import co.muhu.eventManagement.model.VenueRegistrationDto;
 import co.muhu.eventManagement.repository.VenueRepository;
 import lombok.AllArgsConstructor;
@@ -15,27 +16,31 @@ import java.util.concurrent.atomic.AtomicReference;
 @AllArgsConstructor
 public class VenueServiceImpl implements VenueService {
     private final VenueRepository venueRepository;
-    private final VenueMapper venueMapper;
 
     @Override
-    public List<Venue> getAllVenues() {
-        return venueRepository.findAll();
+    public List<VenueDto> getAllVenues() {
+        return venueRepository.findAll()
+                .stream()
+                .map(VenueMapper::venueToVenueDto)
+                .toList();
     }
 
     @Override
-    public Optional<Venue> getVenueById(Long id) {
-        return venueRepository.findById(id);
+    public Optional<VenueDto> getVenueById(Long id) {
+
+        return venueRepository.findById(id)
+                .map(VenueMapper::venueToVenueDto);
     }
 
     @Override
-    public Venue createVenue(VenueRegistrationDto venueRegistrationDto) {
-        Venue venue = venueMapper.venueRegistrationDtoToVenue(venueRegistrationDto);
-        return venueRepository.save(venue);
+    public VenueDto createVenue(VenueRegistrationDto venueRegistrationDto) {
+        Venue venue = VenueMapper.venueRegistrationDtoToVenue(venueRegistrationDto);
+        return VenueMapper.venueToVenueDto(venueRepository.save(venue));
     }
 
     @Override
-    public Optional<Venue> updateVenue(Long id, Venue venue) {
-        AtomicReference<Optional<Venue>> foundedVenue = new AtomicReference<>();
+    public Optional<VenueDto> updateVenue(Long id, Venue venue) {
+        AtomicReference<Optional<VenueDto>> foundedVenue = new AtomicReference<>();
 
         venueRepository.findById(id).ifPresentOrElse(
                 updateVenue->{
@@ -43,7 +48,7 @@ public class VenueServiceImpl implements VenueService {
                     updateVenue.setName(venue.getName());
                     updateVenue.setCapacity(venue.getCapacity());
                     updateVenue.setEventSet(venue.getEventSet());
-                    foundedVenue.set(Optional.of(venueRepository.save(updateVenue)));
+                    foundedVenue.set(Optional.of(VenueMapper.venueToVenueDto(venueRepository.save(updateVenue))));
                 },
                 ()->foundedVenue.set(Optional.empty())
         );
