@@ -1,8 +1,14 @@
 package co.muhu.eventManagement.mappers.feedback;
 
 import co.muhu.eventManagement.entity.FeedBack;
+import co.muhu.eventManagement.mappers.event.EventMapper;
+import co.muhu.eventManagement.mappers.participant.ParticipantMapper;
+import co.muhu.eventManagement.model.EventDto;
 import co.muhu.eventManagement.model.FeedBackDto;
 import co.muhu.eventManagement.model.FeedBackRegistrationDto;
+import co.muhu.eventManagement.model.ParticipantDto;
+
+import java.util.List;
 
 public class FeedBackMapper {
 
@@ -16,13 +22,15 @@ public class FeedBackMapper {
     }
 
     public static FeedBackDto feedBackToFeedBackDto(FeedBack feedBack) {
+        EventDto eventDto = EventMapper.eventToEventDto(feedBack.getEvent());
+        ParticipantDto participantDto = ParticipantMapper.participantToParticipantDto(feedBack.getParticipant());
         return FeedBackDto.builder()
                 .id(feedBack.getId())
                 .rating(feedBack.getRating())
                 .comments(feedBack.getComments())
                 .submittedDate(feedBack.getSubmittedDate())
-                .eventId(feedBack.getEvent().getId())
-                .participantId(feedBack.getParticipant().getId())
+                .event(eventDto)
+                .participant(participantDto)
                 .build();
     }
 }

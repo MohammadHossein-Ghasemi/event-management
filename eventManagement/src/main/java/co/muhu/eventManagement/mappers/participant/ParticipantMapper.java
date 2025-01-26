@@ -1,13 +1,10 @@
 package co.muhu.eventManagement.mappers.participant;
 
-import co.muhu.eventManagement.entity.Event;
 import co.muhu.eventManagement.entity.Participant;
+import co.muhu.eventManagement.mappers.event.EventMapper;
 import co.muhu.eventManagement.mappers.feedback.FeedBackMapper;
 import co.muhu.eventManagement.mappers.ticket.TicketMapper;
-import co.muhu.eventManagement.model.FeedBackDto;
-import co.muhu.eventManagement.model.ParticipantDto;
-import co.muhu.eventManagement.model.ParticipantRegistrationDto;
-import co.muhu.eventManagement.model.TicketDto;
+import co.muhu.eventManagement.model.*;
 
 import java.util.List;
 
@@ -22,9 +19,9 @@ public class ParticipantMapper {
     }
 
     public static ParticipantDto participantToParticipantDto(Participant participant){
-        List<Long> eventId = participant.getEventSet()
+        List<EventDto> eventDtoList = participant.getEventSet()
                 .stream()
-                .map(Event::getId)
+                .map(EventMapper::eventToEventDto)
                 .toList();
         List<TicketDto> ticketDtoList= participant.getTicketSet()
                 .stream()
@@ -41,7 +38,7 @@ public class ParticipantMapper {
                 .phone(participant.getPhone())
                 .registrationDate(participant.getRegistrationDate())
                 .status(participant.getStatus())
-                .eventSet(eventId)
+                .eventSet(eventDtoList)
                 .ticketSet(ticketDtoList)
                 .feedBackSet(feedBackDtoList)
                 .build();

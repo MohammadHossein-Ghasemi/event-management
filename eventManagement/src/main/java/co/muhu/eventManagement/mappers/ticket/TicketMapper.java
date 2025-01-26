@@ -1,6 +1,10 @@
 package co.muhu.eventManagement.mappers.ticket;
 
 import co.muhu.eventManagement.entity.Ticket;
+import co.muhu.eventManagement.mappers.event.EventMapper;
+import co.muhu.eventManagement.mappers.participant.ParticipantMapper;
+import co.muhu.eventManagement.model.EventDto;
+import co.muhu.eventManagement.model.ParticipantDto;
 import co.muhu.eventManagement.model.TicketDto;
 import co.muhu.eventManagement.model.TicketRegistrationDto;
 import org.springframework.stereotype.Component;
@@ -16,12 +20,14 @@ public class TicketMapper {
     }
 
     public static TicketDto ticketToTicketDto(Ticket ticket){
+        EventDto eventDto = EventMapper.eventToEventDto(ticket.getEvent());
+        ParticipantDto participantDto = ParticipantMapper.participantToParticipantDto(ticket.getParticipant());
         return TicketDto.builder()
                 .id(ticket.getId())
                 .price(ticket.getPrice())
                 .status(ticket.getStatus())
-                .eventId(ticket.getEvent().getId())
-                .participantId(ticket.getParticipant().getId())
+                .eventDto(eventDto)
+                .participantDto(participantDto)
                 .purchaseDate(ticket.getPurchaseDate())
                 .build();
     }

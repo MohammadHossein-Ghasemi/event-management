@@ -14,7 +14,7 @@ public class FeedBackDto {
     private int rating;
     private String comments;
     private LocalDateTime submittedDate;
-    private Long eventId;
-    private Long participantId;
+    private EventDto event;
+    private ParticipantDto participant;
 }
 

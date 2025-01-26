@@ -17,7 +17,7 @@ public class ParticipantDto {
     private String phone;
     private LocalDateTime registrationDate;
     private String status;
-    private List<Long> eventSet;
+    private List<EventDto> eventSet;
     private List<TicketDto> ticketSet;
     private List<FeedBackDto> feedBackSet;
 }

@@ -1,10 +1,6 @@
 package co.muhu.eventManagement.model;
 
-import co.muhu.eventManagement.entity.Event;
-import co.muhu.eventManagement.entity.Participant;
-import jakarta.persistence.ManyToOne;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -19,6 +15,6 @@ public class TicketDto {
     private BigDecimal price;
     private String status;
     private LocalDateTime purchaseDate;
-    private Long eventId;
-    private Long participantId;
+    private EventDto eventDto;
+    private ParticipantDto participantDto;
 }
