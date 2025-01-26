@@ -5,6 +5,7 @@ import co.muhu.eventManagement.entity.Participant;
 import co.muhu.eventManagement.entity.Ticket;
 import co.muhu.eventManagement.exception.ResourceNotFoundException;
 import co.muhu.eventManagement.mappers.ticket.TicketMapper;
+import co.muhu.eventManagement.model.TicketDto;
 import co.muhu.eventManagement.model.TicketRegistrationDto;
 import co.muhu.eventManagement.repository.EventRepository;
 import co.muhu.eventManagement.repository.ParticipantRepository;
@@ -22,32 +23,35 @@ public class TicketServiceImpl implements TicketService {
     private final TicketRepository ticketRepository;
     private final EventRepository eventRepository;
     private final ParticipantRepository participantRepository;
-    private final TicketMapper ticketMapper;
 
     @Override
-    public List<Ticket> getAllTickets() {
-        return ticketRepository.findAll();
+    public List<TicketDto> getAllTickets() {
+
+        return ticketRepository.findAll()
+                .stream()
+                .map(TicketMapper::ticketToTicketDto)
+                .toList();
     }
 
     @Override
-    public Optional<Ticket> getTicketById(Long id) {
+    public Optional<TicketDto> getTicketById(Long id) {
 
-        return ticketRepository.findById(id);
+        return ticketRepository.findById(id).map(TicketMapper::ticketToTicketDto);
     }
 
     @Override
-    public Ticket createTicket(TicketRegistrationDto ticketRegistrationDto) {
+    public TicketDto createTicket(TicketRegistrationDto ticketRegistrationDto) {
         Event existedEvent = validateTicketEvent(ticketRegistrationDto)
                 .orElseThrow(()->new ResourceNotFoundException("There is no event with id :"+ticketRegistrationDto.getEvent().getId()));
 
         Participant existedParticipant = validateTicketParticipant(ticketRegistrationDto)
                 .orElseThrow(()->new ResourceNotFoundException("There is no participant with id :"+ticketRegistrationDto.getParticipant().getId()));
 
-        Ticket ticket = ticketMapper.ticketRegistrationDtoToTicket(ticketRegistrationDto);
+        Ticket ticket = TicketMapper.ticketRegistrationDtoToTicket(ticketRegistrationDto);
         ticket.setEvent(existedEvent);;
         ticket.setParticipant(existedParticipant);
 
-        return ticketRepository.save(ticket);
+        return TicketMapper.ticketToTicketDto(ticketRepository.save(ticket));
     }
 
     private Optional<Event> validateTicketEvent(TicketRegistrationDto ticketRegistrationDto){
@@ -64,8 +68,8 @@ public class TicketServiceImpl implements TicketService {
     }
 
     @Override
-    public Optional<Ticket> updateTicket(Long id, Ticket ticket) {
-        AtomicReference<Optional<Ticket>> foundedTicket = new AtomicReference<>();
+    public Optional<TicketDto> updateTicket(Long id, Ticket ticket) {
+        AtomicReference<Optional<TicketDto>> foundedTicket = new AtomicReference<>();
 
         ticketRepository.findById(id).ifPresentOrElse(
                 updateTicket->{
@@ -74,7 +78,7 @@ public class TicketServiceImpl implements TicketService {
                     updateTicket.setPrice(ticket.getPrice());
                     updateTicket.setParticipant(ticket.getParticipant());
                     updateTicket.setPurchaseDate(ticket.getPurchaseDate());
-                    foundedTicket.set(Optional.of(ticketRepository.save(updateTicket)));
+                    foundedTicket.set(Optional.of(TicketMapper.ticketToTicketDto(ticketRepository.save(updateTicket))));
                 },
                 ()-> foundedTicket.set(Optional.empty())
         );
@@ -91,18 +95,24 @@ public class TicketServiceImpl implements TicketService {
     }
 
     @Override
-    public List<Ticket> getTicketsByEventId(Long eventId) {
+    public List<TicketDto> getTicketsByEventId(Long eventId) {
         if (!eventRepository.existsById(eventId)){
             throw new ResourceNotFoundException("There is no event with id :"+eventId);
         }
-        return ticketRepository.findAllByEventId(eventId);
+        return ticketRepository.findAllByEventId(eventId)
+                .stream()
+                .map(TicketMapper::ticketToTicketDto)
+                .toList();
     }
 
     @Override
-    public List<Ticket> getTicketsByParticipantId(Long participantId) {
+    public List<TicketDto> getTicketsByParticipantId(Long participantId) {
         if (!participantRepository.existsById(participantId)){
             throw new ResourceNotFoundException("There is no participant with id :"+participantId);
         }
-        return ticketRepository.findAllByParticipantId(participantId);
+        return ticketRepository.findAllByParticipantId(participantId)
+                .stream()
+                .map(TicketMapper::ticketToTicketDto)
+                .toList();
     }
 }

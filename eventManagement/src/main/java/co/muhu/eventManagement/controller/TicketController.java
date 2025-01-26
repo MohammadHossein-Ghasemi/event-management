@@ -2,6 +2,7 @@ package co.muhu.eventManagement.controller;
 
 import co.muhu.eventManagement.entity.Ticket;
 import co.muhu.eventManagement.exception.ResourceNotFoundException;
+import co.muhu.eventManagement.model.TicketDto;
 import co.muhu.eventManagement.model.TicketRegistrationDto;
 import co.muhu.eventManagement.service.TicketService;
 import lombok.RequiredArgsConstructor;
@@ -21,8 +22,8 @@ public class TicketController {
     private final TicketService ticketService;
 
     @GetMapping(value = TICKET_PATH)
-    public ResponseEntity<List<Ticket>> getAllTickets(){
-        List<Ticket> ticketList = ticketService.getAllTickets();
+    public ResponseEntity<List<TicketDto>> getAllTickets(){
+        List<TicketDto> ticketList = ticketService.getAllTickets();
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .header(HttpHeaders.LOCATION,TICKET_PATH)
@@ -30,8 +31,8 @@ public class TicketController {
     }
 
     @GetMapping(value = TICKET_PATH_ID)
-    public ResponseEntity<Ticket> getTicketById(@PathVariable Long ticketId){
-        Ticket foundedTicket = ticketService.getTicketById(ticketId)
+    public ResponseEntity<TicketDto> getTicketById(@PathVariable Long ticketId){
+        TicketDto foundedTicket = ticketService.getTicketById(ticketId)
                 .orElseThrow(()-> new ResourceNotFoundException("There is no thicket with this id : "+ticketId));
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -40,8 +41,8 @@ public class TicketController {
     }
 
     @PostMapping(value = TICKET_PATH)
-    public ResponseEntity<Ticket> saveTicket(@Validated @RequestBody TicketRegistrationDto ticketRegistrationDto){
-        Ticket savedTicket = ticketService.createTicket(ticketRegistrationDto);
+    public ResponseEntity<TicketDto> saveTicket(@Validated @RequestBody TicketRegistrationDto ticketRegistrationDto){
+        TicketDto savedTicket = ticketService.createTicket(ticketRegistrationDto);
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .header(HttpHeaders.LOCATION,TICKET_PATH)
@@ -49,9 +50,9 @@ public class TicketController {
     }
 
     @PutMapping(value = TICKET_PATH_ID)
-    public ResponseEntity<Ticket> updateTicket(@Validated @RequestBody Ticket ticket,
+    public ResponseEntity<TicketDto> updateTicket(@Validated @RequestBody Ticket ticket,
                                                @PathVariable Long ticketId){
-        Ticket updatedTicket = ticketService.updateTicket(ticketId, ticket)
+        TicketDto updatedTicket = ticketService.updateTicket(ticketId, ticket)
                 .orElseThrow(() -> new ResourceNotFoundException("There is no ticket with this id : " + ticketId));
 
         return ResponseEntity
@@ -73,8 +74,8 @@ public class TicketController {
     }
 
     @GetMapping(value = TICKET_PATH+"/event/{eventId}")
-    public ResponseEntity<List<Ticket>> getALLTicketsByEventId(@PathVariable Long eventId){
-        List<Ticket> ticketList = ticketService.getTicketsByEventId(eventId);
+    public ResponseEntity<List<TicketDto>> getALLTicketsByEventId(@PathVariable Long eventId){
+        List<TicketDto> ticketList = ticketService.getTicketsByEventId(eventId);
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .header(HttpHeaders.LOCATION,TICKET_PATH+"/event/"+eventId)
@@ -82,8 +83,8 @@ public class TicketController {
     }
 
     @GetMapping(value = TICKET_PATH+"/participant/{participantId}")
-    public ResponseEntity<List<Ticket>> getAllTicketsByParticipantId(@PathVariable Long participantId){
-        List<Ticket> ticketList = ticketService.getTicketsByParticipantId(participantId);
+    public ResponseEntity<List<TicketDto>> getAllTicketsByParticipantId(@PathVariable Long participantId){
+        List<TicketDto> ticketList = ticketService.getTicketsByParticipantId(participantId);
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .header(HttpHeaders.LOCATION,TICKET_PATH+"/participant/"+participantId)
