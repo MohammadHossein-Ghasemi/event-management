@@ -2,6 +2,7 @@ package co.muhu.eventManagement.controller;
 
 import co.muhu.eventManagement.entity.FeedBack;
 import co.muhu.eventManagement.exception.ResourceNotFoundException;
+import co.muhu.eventManagement.model.FeedBackDto;
 import co.muhu.eventManagement.model.FeedBackRegistrationDto;
 import co.muhu.eventManagement.service.FeedbackService;
 import lombok.RequiredArgsConstructor;
@@ -21,8 +22,8 @@ public class FeedBackController {
     private final FeedbackService feedbackService;
 
     @GetMapping(value = FEEDBACK_PATH)
-    public ResponseEntity<List<FeedBack>> getAllFeedBacks(){
-        List<FeedBack> feedBackList = feedbackService.getAllFeedbacks();
+    public ResponseEntity<List<FeedBackDto>> getAllFeedBacks(){
+        List<FeedBackDto> feedBackList = feedbackService.getAllFeedbacks();
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .header(HttpHeaders.LOCATION,FEEDBACK_PATH)
@@ -30,8 +31,8 @@ public class FeedBackController {
     }
 
     @GetMapping(value = FEEDBACK_PATH_ID)
-    public ResponseEntity<FeedBack> getFeedBackById(@PathVariable Long feedBackId){
-        FeedBack foundedFeedBack = feedbackService.getFeedbackById(feedBackId)
+    public ResponseEntity<FeedBackDto> getFeedBackById(@PathVariable Long feedBackId){
+        FeedBackDto foundedFeedBack = feedbackService.getFeedbackById(feedBackId)
                 .orElseThrow(()-> new ResourceNotFoundException("There is no feedback with this id : "+feedBackId));
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -49,9 +50,9 @@ public class FeedBackController {
     }
 
     @PutMapping(value = FEEDBACK_PATH_ID)
-    public ResponseEntity<FeedBack> updateFeedBack(@Validated@RequestBody FeedBack feedBack,
+    public ResponseEntity<FeedBackDto> updateFeedBack(@Validated@RequestBody FeedBack feedBack,
                                                    @PathVariable Long feedBackId){
-        FeedBack updatedFeedBack = feedbackService.updateFeedback(feedBackId, feedBack)
+        FeedBackDto updatedFeedBack = feedbackService.updateFeedback(feedBackId, feedBack)
                 .orElseThrow(()-> new ResourceNotFoundException("There is no feedback with this id : "+feedBackId));
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -72,8 +73,8 @@ public class FeedBackController {
     }
 
     @GetMapping(value = FEEDBACK_PATH+"/event/{eventId}")
-    public ResponseEntity<List<FeedBack>> getAllFeedBacksByEventId(@PathVariable Long eventId){
-        List<FeedBack> feedBackList = feedbackService.getAllFeedbacksByEventId(eventId);
+    public ResponseEntity<List<FeedBackDto>> getAllFeedBacksByEventId(@PathVariable Long eventId){
+        List<FeedBackDto> feedBackList = feedbackService.getAllFeedbacksByEventId(eventId);
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .header(HttpHeaders.LOCATION,FEEDBACK_PATH)
@@ -81,8 +82,8 @@ public class FeedBackController {
     }
 
     @GetMapping(value = FEEDBACK_PATH+"/participant/{participantId}")
-    public ResponseEntity<List<FeedBack>> getAllFeedBacksByParticipantId(@PathVariable Long participantId){
-        List<FeedBack> feedBackList = feedbackService.getAllFeedBacksByParticipantId(participantId);
+    public ResponseEntity<List<FeedBackDto>> getAllFeedBacksByParticipantId(@PathVariable Long participantId){
+        List<FeedBackDto> feedBackList = feedbackService.getAllFeedBacksByParticipantId(participantId);
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .header(HttpHeaders.LOCATION,FEEDBACK_PATH)
