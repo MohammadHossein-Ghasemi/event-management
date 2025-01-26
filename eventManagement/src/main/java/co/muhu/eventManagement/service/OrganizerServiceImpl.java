@@ -3,6 +3,7 @@ package co.muhu.eventManagement.service;
 import co.muhu.eventManagement.entity.Organizer;
 import co.muhu.eventManagement.exception.ResourceNotFoundException;
 import co.muhu.eventManagement.mappers.organizer.OrganizerMapper;
+import co.muhu.eventManagement.model.OrganizerDto;
 import co.muhu.eventManagement.model.OrganizerRegistrationDto;
 import co.muhu.eventManagement.repository.EventRepository;
 import co.muhu.eventManagement.repository.OrganizerRepository;
@@ -18,34 +19,38 @@ import java.util.concurrent.atomic.AtomicReference;
 public class OrganizerServiceImpl implements OrganizerService {
     private final OrganizerRepository organizerRepository;
     private final EventRepository eventRepository;
-    private final OrganizerMapper organizerMapper;
+
     @Override
-    public List<Organizer> getAllOrganizers() {
-        return organizerRepository.findAll();
+    public List<OrganizerDto> getAllOrganizers() {
+        return organizerRepository.findAll()
+                .stream()
+                .map(OrganizerMapper::organizerToOrganizerDto)
+                .toList();
     }
 
     @Override
-    public Optional<Organizer> getOrganizerById(Long id) {
+    public Optional<OrganizerDto> getOrganizerById(Long id) {
 
-        return organizerRepository.findById(id);
+        return organizerRepository.findById(id)
+                .map(OrganizerMapper::organizerToOrganizerDto);
     }
 
     @Override
-    public Organizer createOrganizer(OrganizerRegistrationDto organizerRegistrationDto) {
-        Organizer organizer = organizerMapper.organizerRegistrationDtoToOrganizer(organizerRegistrationDto);
-        return organizerRepository.save(organizer);
+    public OrganizerDto createOrganizer(OrganizerRegistrationDto organizerRegistrationDto) {
+        Organizer organizer = OrganizerMapper.organizerRegistrationDtoToOrganizer(organizerRegistrationDto);
+        return OrganizerMapper.organizerToOrganizerDto(organizerRepository.save(organizer));
     }
 
     @Override
-    public Optional<Organizer> updateOrganizer(Long id, Organizer organizer) {
-        AtomicReference<Optional<Organizer>> foundedOrganizer = new AtomicReference<>();
+    public Optional<OrganizerDto> updateOrganizer(Long id, Organizer organizer) {
+        AtomicReference<Optional<OrganizerDto>> foundedOrganizer = new AtomicReference<>();
 
         organizerRepository.findById(id).ifPresentOrElse(
                 updatedOrganizer->{
                     updatedOrganizer.setName(organizer.getName());
                     updatedOrganizer.setContactInfo(organizer.getContactInfo());
                     updatedOrganizer.setEvent(organizer.getEvent());
-                    foundedOrganizer.set(Optional.of(organizerRepository.save(updatedOrganizer)));
+                    foundedOrganizer.set(Optional.of(OrganizerMapper.organizerToOrganizerDto(organizerRepository.save(updatedOrganizer))));
                 },
                 ()->foundedOrganizer.set(Optional.empty())
         );
@@ -63,10 +68,13 @@ public class OrganizerServiceImpl implements OrganizerService {
     }
 
     @Override
-    public List<Organizer> getOrganizerByEventId(Long eventId) {
+    public List<OrganizerDto> getOrganizerByEventId(Long eventId) {
         if (!eventRepository.existsById(eventId)){
             throw new ResourceNotFoundException("There is no event with this id : "+eventId);
         }
-        return organizerRepository.findByEventId(eventId);
+        return organizerRepository.findByEventId(eventId)
+                .stream()
+                .map(OrganizerMapper::organizerToOrganizerDto)
+                .toList();
     }
 }

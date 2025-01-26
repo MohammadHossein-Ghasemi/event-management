@@ -1,10 +1,9 @@
 package co.muhu.eventManagement.controller;
 
 import co.muhu.eventManagement.entity.Organizer;
-import co.muhu.eventManagement.entity.Ticket;
 import co.muhu.eventManagement.exception.ResourceNotFoundException;
+import co.muhu.eventManagement.model.OrganizerDto;
 import co.muhu.eventManagement.model.OrganizerRegistrationDto;
-import co.muhu.eventManagement.model.TicketRegistrationDto;
 import co.muhu.eventManagement.service.OrganizerService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
@@ -23,8 +22,8 @@ public class OrganizerController {
     private final OrganizerService organizerService;
 
     @GetMapping(value = ORGANIZER_PATH)
-    public ResponseEntity<List<Organizer>> getAllOrganizers(){
-        List<Organizer> organizerList = organizerService.getAllOrganizers();
+    public ResponseEntity<List<OrganizerDto>> getAllOrganizers(){
+        List<OrganizerDto> organizerList = organizerService.getAllOrganizers();
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .header(HttpHeaders.LOCATION,ORGANIZER_PATH)
@@ -32,8 +31,8 @@ public class OrganizerController {
     }
 
     @GetMapping(value = ORGANIZER_PATH_ID)
-    public ResponseEntity<Organizer> getOrganizerById(@PathVariable Long organizerId){
-        Organizer foundedOrganizer = organizerService.getOrganizerById(organizerId)
+    public ResponseEntity<OrganizerDto> getOrganizerById(@PathVariable Long organizerId){
+        OrganizerDto foundedOrganizer = organizerService.getOrganizerById(organizerId)
                 .orElseThrow(()-> new ResourceNotFoundException("There is no organizer with this id : "+organizerId));
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -42,8 +41,8 @@ public class OrganizerController {
     }
 
     @PostMapping(value = ORGANIZER_PATH)
-    public ResponseEntity<Organizer> saveOrganizer(@Validated @RequestBody OrganizerRegistrationDto organizerRegistrationDto){
-        Organizer savedOrganizer = organizerService.createOrganizer(organizerRegistrationDto);
+    public ResponseEntity<OrganizerDto> saveOrganizer(@Validated @RequestBody OrganizerRegistrationDto organizerRegistrationDto){
+        OrganizerDto savedOrganizer = organizerService.createOrganizer(organizerRegistrationDto);
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .header(HttpHeaders.LOCATION,ORGANIZER_PATH)
@@ -51,9 +50,9 @@ public class OrganizerController {
     }
 
     @PutMapping(value = ORGANIZER_PATH_ID)
-    public ResponseEntity<Organizer> updateOrganizer(@Validated @RequestBody Organizer organizer,
+    public ResponseEntity<OrganizerDto> updateOrganizer(@Validated @RequestBody Organizer organizer,
                                                @PathVariable Long organizerId){
-        Organizer updatedOrganizer = organizerService.updateOrganizer(organizerId, organizer)
+        OrganizerDto updatedOrganizer = organizerService.updateOrganizer(organizerId, organizer)
                 .orElseThrow(() -> new ResourceNotFoundException("There is no organizer with this id : " + organizerId));
 
         return ResponseEntity
@@ -75,8 +74,8 @@ public class OrganizerController {
     }
 
     @GetMapping(value = ORGANIZER_PATH+"/event/{eventId}")
-    public ResponseEntity<List<Organizer>> getOrganizerByEventId(@PathVariable Long eventId){
-        List<Organizer> organizerList = organizerService.getOrganizerByEventId(eventId);
+    public ResponseEntity<List<OrganizerDto>> getOrganizerByEventId(@PathVariable Long eventId){
+        List<OrganizerDto> organizerList = organizerService.getOrganizerByEventId(eventId);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
