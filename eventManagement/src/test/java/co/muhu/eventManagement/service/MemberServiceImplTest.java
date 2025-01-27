@@ -1,6 +1,8 @@
 package co.muhu.eventManagement.service;
 
 import co.muhu.eventManagement.entity.Member;
+import co.muhu.eventManagement.model.MemberDto;
+import co.muhu.eventManagement.model.MemberRegistrationDto;
 import co.muhu.eventManagement.repository.MemberRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -9,9 +11,9 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.util.Optional;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -49,20 +51,32 @@ class MemberServiceImplTest {
 
     @Test
     void createMember() {
-        Member newMember=new Member();
+        MemberRegistrationDto newMember=new MemberRegistrationDto();
         memberServiceTest.createMember(newMember);
-        verify(memberRepositoryMock).save(newMember);
+        verify(memberRepositoryMock).save(any(Member.class));
     }
 
     @Test
     void updateMemberById() {
-        Member exitingMember = Member.builder().email("exitingMember@gmail.com").id((long)1).build();
-        Member updateMember = Member.builder().email("updatedMember@gmail.com").id(exitingMember.getId()).build();
+        Member exitingMember = Member.builder()
+                .email("exitingMember@gmail.com")
+                .id((long)1)
+                .firstName("Old one")
+                .participatedEvents(Set.of())
+                .organizedEvents(Set.of())
+                .build();
+        Member updateMember = Member.builder()
+                .email(exitingMember.getEmail())
+                .id(exitingMember.getId())
+                .firstName("New one")
+                .participatedEvents(Set.of())
+                .organizedEvents(Set.of())
+                .build();
 
         when(memberRepositoryMock.findById(exitingMember.getId())).thenReturn(Optional.of(exitingMember));
-        when(memberRepositoryMock.save(updateMember)).thenReturn(updateMember);
+        when(memberRepositoryMock.save(any(Member.class))).thenReturn(updateMember);
 
-        Optional<Member> result = memberServiceTest.updateMemberById(exitingMember.getId(), updateMember);
+        Optional<MemberDto> result = memberServiceTest.updateMemberById(exitingMember.getId(), updateMember);
 
         assertThat(result).isPresent();
         assertThat(result).hasValueSatisfying(member -> {
@@ -75,12 +89,24 @@ class MemberServiceImplTest {
     }
     @Test
     void updateMemberByIdWhenMemberNotPresent() {
-        Member exitingMember = Member.builder().email("exitingMember@gmail.com").id((long)1).build();
-        Member updateMember = Member.builder().email("updatedMember@gmail.com").id(exitingMember.getId()).build();
+        Member exitingMember = Member.builder()
+                .email("exitingMember@gmail.com")
+                .id((long)1)
+                .firstName("Old one")
+                .participatedEvents(Set.of())
+                .organizedEvents(Set.of())
+                .build();
+        Member updateMember = Member.builder()
+                .email(exitingMember.getEmail())
+                .id(exitingMember.getId())
+                .firstName("New one")
+                .participatedEvents(Set.of())
+                .organizedEvents(Set.of())
+                .build();
 
         when(memberRepositoryMock.findById(exitingMember.getId())).thenReturn(Optional.empty());
 
-        Optional<Member> result = memberServiceTest.updateMemberById(exitingMember.getId(), updateMember);
+        Optional<MemberDto> result = memberServiceTest.updateMemberById(exitingMember.getId(), updateMember);
 
         assertThat(result).isNotPresent();
 
@@ -143,13 +169,27 @@ class MemberServiceImplTest {
     }
     @Test
     void updateMemberByEmail() {
-        Member exitingMember = Member.builder().email("exitingMember@gmail.com").id((long)1).firstName("Old one").build();
-        Member updateMember = Member.builder().email(exitingMember.getEmail()).id(exitingMember.getId()).firstName("New one").build();
+        Member exitingMember = Member.builder()
+                .email("exitingMember@gmail.com")
+                .id((long)1)
+                .firstName("Old one")
+                .participatedEvents(Set.of())
+                .organizedEvents(Set.of())
+                .build();
+        Member updateMember = Member.builder()
+                .email(exitingMember.getEmail())
+                .id(exitingMember.getId())
+                .firstName("New one")
+                .participatedEvents(Set.of())
+                .organizedEvents(Set.of())
+                .build();
 
         when(memberRepositoryMock.findByEmail(exitingMember.getEmail())).thenReturn(Optional.of(exitingMember));
-        when(memberRepositoryMock.save(updateMember)).thenReturn(updateMember);
+        when(memberRepositoryMock.save(any(Member.class))).thenReturn(updateMember);
 
-        Optional<Member> result = memberServiceTest.updateMemberByEmail(exitingMember.getEmail(), updateMember);
+        when(memberRepositoryMock.findById(exitingMember.getId())).thenReturn(Optional.of(exitingMember));
+
+        Optional<MemberDto> result = memberServiceTest.updateMemberByEmail(exitingMember.getEmail(), updateMember);
 
         assertThat(result).isPresent();
         assertThat(result).hasValueSatisfying(member -> {
@@ -167,7 +207,7 @@ class MemberServiceImplTest {
 
         when(memberRepositoryMock.findByEmail(exitingMember.getEmail())).thenReturn(Optional.empty());
 
-        Optional<Member> result = memberServiceTest.updateMemberByEmail(exitingMember.getEmail(), updateMember);
+        Optional<MemberDto> result = memberServiceTest.updateMemberByEmail(exitingMember.getEmail(), updateMember);
 
         assertThat(result).isNotPresent();
 
