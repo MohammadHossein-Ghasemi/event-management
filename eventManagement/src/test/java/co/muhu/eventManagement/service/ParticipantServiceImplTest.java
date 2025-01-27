@@ -1,6 +1,10 @@
 package co.muhu.eventManagement.service;
 
 import co.muhu.eventManagement.entity.Participant;
+import co.muhu.eventManagement.exception.ResourceNotFoundException;
+import co.muhu.eventManagement.model.ParticipantDto;
+import co.muhu.eventManagement.model.ParticipantRegistrationDto;
+import co.muhu.eventManagement.repository.EventRepository;
 import co.muhu.eventManagement.repository.ParticipantRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -9,8 +13,10 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.util.Optional;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
 class ParticipantServiceImplTest {
@@ -20,12 +26,15 @@ class ParticipantServiceImplTest {
     @Mock
     private ParticipantRepository participantRepositoryMock;
 
+    @Mock
+    private EventRepository eventRepositoryMock;
+
     private AutoCloseable autoCloseable;
 
     @BeforeEach
     void setUp(){
         autoCloseable= MockitoAnnotations.openMocks(this);
-        participantServiceTest=new ParticipantServiceImpl(participantRepositoryMock);
+        participantServiceTest=new ParticipantServiceImpl(participantRepositoryMock,eventRepositoryMock);
     }
 
     @AfterEach
@@ -51,7 +60,7 @@ class ParticipantServiceImplTest {
     @Test
     void createParticipant() {
         long id =1;
-        Participant newParticipant = Participant.builder().id(id).build();
+        ParticipantRegistrationDto newParticipant = ParticipantRegistrationDto.builder().build();
 
         participantServiceTest.createParticipant(newParticipant);
 
@@ -61,13 +70,24 @@ class ParticipantServiceImplTest {
     @Test
     void updateParticipant() {
         long id =1;
-        Participant exitingParticipant = Participant.builder().id(id).build();
-        Participant updateParticipant = Participant.builder().id(id).name("Update Participant").build();
+        Participant exitingParticipant = Participant.builder()
+                .id(id)
+                .eventSet(Set.of())
+                .feedBackSet(Set.of())
+                .ticketSet(Set.of())
+                .build();
+        Participant updateParticipant = Participant.builder()
+                .id(id)
+                .name("Update Participant")
+                .eventSet(Set.of())
+                .feedBackSet(Set.of())
+                .ticketSet(Set.of())
+                .build();
 
         when(participantRepositoryMock.findById(exitingParticipant.getId())).thenReturn(Optional.of(exitingParticipant));
         when(participantRepositoryMock.save(any(Participant.class))).thenReturn(updateParticipant);
 
-        Optional<Participant> result = participantServiceTest.updateParticipant(exitingParticipant.getId(), updateParticipant);
+        Optional<ParticipantDto> result = participantServiceTest.updateParticipant(exitingParticipant.getId(), updateParticipant);
 
         assertThat(result).isPresent();
         assertThat(result).hasValueSatisfying(
@@ -88,7 +108,7 @@ class ParticipantServiceImplTest {
 
         when(participantRepositoryMock.findById(exitingParticipant.getId())).thenReturn(Optional.empty());
 
-        Optional<Participant> result = participantServiceTest.updateParticipant(exitingParticipant.getId(), updateParticipant);
+        Optional<ParticipantDto> result = participantServiceTest.updateParticipant(exitingParticipant.getId(), updateParticipant);
 
         assertThat(result).isNotPresent();
 
@@ -118,11 +138,24 @@ class ParticipantServiceImplTest {
     }
 
     @Test
-    void getParticipantsByEventId() {
+    void getParticipantsByEventIdWhenEventPresent() {
         long eventId=1;
+
+        when(eventRepositoryMock.existsById(eventId)).thenReturn(true);
 
         participantServiceTest.getParticipantsByEventId(eventId);
 
         verify(participantRepositoryMock).findAllByEventSetId(eventId);
+    }
+
+    @Test
+    void getParticipantsByEventIdWhenEventNotPresent() {
+        long eventId=1;
+
+        when(eventRepositoryMock.existsById(eventId)).thenReturn(false);
+
+        assertThatThrownBy(()->participantServiceTest.getParticipantsByEventId(eventId))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining("There is no event with this id : "+eventId);
     }
 }
