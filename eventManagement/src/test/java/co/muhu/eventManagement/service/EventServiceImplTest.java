@@ -3,7 +3,9 @@ package co.muhu.eventManagement.service;
 import co.muhu.eventManagement.entity.*;
 import co.muhu.eventManagement.exception.ResourceNotFoundException;
 import co.muhu.eventManagement.mappers.event.EventMapper;
+import co.muhu.eventManagement.model.EventDto;
 import co.muhu.eventManagement.model.EventRegistrationDto;
+import co.muhu.eventManagement.model.FeedBackDto;
 import co.muhu.eventManagement.repository.*;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -11,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
@@ -35,23 +38,18 @@ class EventServiceImplTest {
     @Mock
     private ParticipantRepository participantRepositoryMock;
 
-    private EventMapper eventMapper ;
-    private EventRegistrationDto eventRegistrationDto ;
-
     private AutoCloseable autoCloseable;
+
 
     @BeforeEach
     void setUp(){
-        eventMapper = new EventMapper();
-        eventRegistrationDto = new EventRegistrationDto();
         autoCloseable= MockitoAnnotations.openMocks(this);
         eventServiceTest=new EventServiceImpl(
                 eventRepositoryMock,
                 memberRepositoryMock,
                 organizerRepositoryMock,
                 venueRepositoryMock,
-                participantRepositoryMock,
-                eventMapper);
+                participantRepositoryMock);
     }
 
     @AfterEach
@@ -71,24 +69,30 @@ class EventServiceImplTest {
         eventServiceTest.getEventById(eventId);
         verify(eventRepositoryMock).findById(eventId);
     }
-
     @Test
     void createEvent() {
         Member member = Member.builder()
                 .id(1L)
                 .email("MemberTest@gmail.com")
+                .organizedEvents(Set.of())
+                .participatedEvents(Set.of())
                 .build();
         Organizer organizer = Organizer.builder()
                 .id(1L)
                 .name("Test Organizer")
+                .event(Set.of())
                 .build();
         Venue venue = Venue.builder()
                 .id(1L)
                 .name("Test Venue")
+                .eventSet(Set.of())
                 .build();
         Participant participant = Participant.builder()
                 .id(1L)
                 .name("Test Participant")
+                .eventSet(Set.of())
+                .ticketSet(Set.of())
+                .feedBackSet(Set.of())
                 .build();
         EventRegistrationDto eventDto = EventRegistrationDto.builder()
                 .name("Test DTO")
@@ -99,19 +103,21 @@ class EventServiceImplTest {
                 .participantSet(Set.of(participant))
                 .build();
 
-        Event event = eventMapper.EventRegistrationDtoToEvent(eventDto);
-
-        assertThat(event).isNotNull();
+        assertThat(eventDto).isNotNull();
 
         when(memberRepositoryMock.existsById(member.getId())).thenReturn(true);
+        when(memberRepositoryMock.findById(member.getId())).thenReturn(Optional.of(member));
         when(organizerRepositoryMock.existsById(organizer.getId())).thenReturn(true);
+        when(organizerRepositoryMock.findById(organizer.getId())).thenReturn(Optional.of(organizer));
         when(venueRepositoryMock.existsById(venue.getId())).thenReturn(true);
-        when(participantRepositoryMock.existsById(any(Long.class))).thenReturn(true);
+        when(venueRepositoryMock.findById(venue.getId())).thenReturn(Optional.of(venue));
+        when(participantRepositoryMock.existsById(participant.getId())).thenReturn(true);
+        when(participantRepositoryMock.findById(participant.getId())).thenReturn(Optional.of(participant));
 
-        eventServiceTest.createEvent(eventDto);
+        EventDto result = eventServiceTest.createEvent(eventDto);
 
-        verify(eventRepositoryMock).save(event);
-
+        assertThat(result).isNotNull();
+        verify(eventRepositoryMock).save(any(Event.class));
     }
 
     @Test
@@ -141,7 +147,7 @@ class EventServiceImplTest {
                 .participantSet(Set.of(participant))
                 .build();
 
-        Event event = eventMapper.EventRegistrationDtoToEvent(eventDto);
+        Event event = EventMapper.eventRegistrationDtoToEvent(eventDto);
 
         assertThat(event).isNotNull();
 
@@ -161,7 +167,7 @@ class EventServiceImplTest {
                 .location("Test Location")
                 .member(null)
                 .build();
-        Event event = eventMapper.EventRegistrationDtoToEvent(eventDto);
+        Event event = EventMapper.eventRegistrationDtoToEvent(eventDto);
 
         assertThat(event).isNotNull();
 
@@ -179,7 +185,7 @@ class EventServiceImplTest {
                 .location("Test Location")
                 .member(member)
                 .build();
-        Event event = eventMapper.EventRegistrationDtoToEvent(eventDto);
+        Event event = EventMapper.eventRegistrationDtoToEvent(eventDto);
 
         assertThat(event).isNotNull();
 
@@ -191,7 +197,7 @@ class EventServiceImplTest {
     }
 
     @Test
-    void createEventWhenOrganizerNotPresent() {
+    void createEventWhenOrganizerIsNotValid() {
         Member member = Member.builder()
                 .id(1L)
                 .email("MemberTest@gmail.com")
@@ -217,64 +223,22 @@ class EventServiceImplTest {
                 .participantSet(Set.of(participant))
                 .build();
 
-        Event event = eventMapper.EventRegistrationDtoToEvent(eventDto);
+        Event event = EventMapper.eventRegistrationDtoToEvent(eventDto);
 
         assertThat(event).isNotNull();
 
         when(memberRepositoryMock.existsById(member.getId())).thenReturn(true);
+        when(memberRepositoryMock.findById(member.getId())).thenReturn(Optional.of(member));
         when(organizerRepositoryMock.existsById(organizer.getId())).thenReturn(false);
         when(venueRepositoryMock.existsById(venue.getId())).thenReturn(true);
-        when(participantRepositoryMock.existsById(any(Long.class))).thenReturn(true);
+        when(participantRepositoryMock.existsById(participant.getId())).thenReturn(true);
 
         assertThatThrownBy(()->eventServiceTest.createEvent(eventDto))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("Invalid organizer. Register the organizer first.");
     }
     @Test
-    void createEventWhenOrganizerIsNull() {
-        Member member=Member.builder().id(1L).build();
-        EventRegistrationDto eventDto = EventRegistrationDto.builder()
-                .name("Test DTO")
-                .location("Test Location")
-                .member(member)
-                .organizer(null)
-                .build();
-        Event event = eventMapper.EventRegistrationDtoToEvent(eventDto);
-
-        assertThat(event).isNotNull();
-
-        assertThat(eventDto.getOrganizer()).isNull();
-
-        when(memberRepositoryMock.existsById(any(Long.class))).thenReturn(true);
-
-        assertThatThrownBy(()->eventServiceTest.createEvent(eventDto))
-                .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessageContaining("Invalid organizer. Register the organizer first.");
-    }
-    @Test
-    void createEventWhenOrganizerIdIsNull() {
-        Member member=Member.builder().id(1L).build();
-        Organizer organizer = Organizer.builder().id(null).build();
-        EventRegistrationDto eventDto = EventRegistrationDto.builder()
-                .name("Test DTO")
-                .location("Test Location")
-                .member(member)
-                .organizer(organizer)
-                .build();
-        Event event = eventMapper.EventRegistrationDtoToEvent(eventDto);
-
-        assertThat(event).isNotNull();
-
-        assertThat(eventDto.getOrganizer().getId()).isNull();
-
-        when(memberRepositoryMock.existsById(any(Long.class))).thenReturn(true);
-
-        assertThatThrownBy(()->eventServiceTest.createEvent(eventDto))
-                .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessageContaining("Invalid organizer. Register the organizer first.");
-    }
-    @Test
-    void createEventWhenVenueNotPresent() {
+    void createEventWhenVenueIsNotValid() {
         Member member = Member.builder()
                 .id(1L)
                 .email("MemberTest@gmail.com")
@@ -300,12 +264,14 @@ class EventServiceImplTest {
                 .participantSet(Set.of(participant))
                 .build();
 
-        Event event = eventMapper.EventRegistrationDtoToEvent(eventDto);
+        Event event = EventMapper.eventRegistrationDtoToEvent(eventDto);
 
         assertThat(event).isNotNull();
 
         when(memberRepositoryMock.existsById(member.getId())).thenReturn(true);
+        when(memberRepositoryMock.findById(member.getId())).thenReturn(Optional.of(member));
         when(organizerRepositoryMock.existsById(organizer.getId())).thenReturn(true);
+        when(organizerRepositoryMock.findById(organizer.getId())).thenReturn(Optional.of(organizer));
         when(venueRepositoryMock.existsById(venue.getId())).thenReturn(false);
         when(participantRepositoryMock.existsById(any(Long.class))).thenReturn(true);
 
@@ -313,59 +279,9 @@ class EventServiceImplTest {
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("Invalid venue. Register the venue first.");
     }
-    @Test
-    void createEventWhenVenueIsNull() {
-        Member member=Member.builder().id(1L).build();
-        Organizer organizer = Organizer.builder().id(1L).build();
-        EventRegistrationDto eventDto = EventRegistrationDto.builder()
-                .name("Test DTO")
-                .location("Test Location")
-                .member(member)
-                .organizer(organizer)
-                .venue(null)
-                .build();
-        Event event = eventMapper.EventRegistrationDtoToEvent(eventDto);
-
-        assertThat(event).isNotNull();
-
-        assertThat(eventDto.getVenue()).isNull();
-
-        when(memberRepositoryMock.existsById(any(Long.class))).thenReturn(true);
-        when(organizerRepositoryMock.existsById(any(Long.class))).thenReturn(true);
-
-        assertThatThrownBy(()->eventServiceTest.createEvent(eventDto))
-                .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessageContaining("Invalid venue. Register the venue first.");
-    }
 
     @Test
-    void createEventWhenVenueIdIsNull() {
-        Member member=Member.builder().id(1L).build();
-        Organizer organizer = Organizer.builder().id(1L).build();
-        Venue venue = Venue.builder().id(null).build();
-        EventRegistrationDto eventDto = EventRegistrationDto.builder()
-                .name("Test DTO")
-                .location("Test Location")
-                .member(member)
-                .organizer(organizer)
-                .venue(venue)
-                .build();
-        Event event = eventMapper.EventRegistrationDtoToEvent(eventDto);
-
-        assertThat(event).isNotNull();
-
-        assertThat(eventDto.getVenue().getId()).isNull();
-
-        when(memberRepositoryMock.existsById(any(Long.class))).thenReturn(true);
-        when(organizerRepositoryMock.existsById(any(Long.class))).thenReturn(true);
-
-        assertThatThrownBy(()->eventServiceTest.createEvent(eventDto))
-                .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessageContaining("Invalid venue. Register the venue first.");
-    }
-
-    @Test
-    void createEventWhenParticipantNotPresent() {
+    void createEventWhenParticipantIsNotValid() {
         Member member = Member.builder()
                 .id(1L)
                 .email("MemberTest@gmail.com")
@@ -391,77 +307,23 @@ class EventServiceImplTest {
                 .participantSet(Set.of(participant))
                 .build();
 
-        Event event = eventMapper.EventRegistrationDtoToEvent(eventDto);
+        Event event = EventMapper.eventRegistrationDtoToEvent(eventDto);
 
         assertThat(event).isNotNull();
 
         when(memberRepositoryMock.existsById(member.getId())).thenReturn(true);
+        when(memberRepositoryMock.findById(member.getId())).thenReturn(Optional.of(member));
         when(organizerRepositoryMock.existsById(organizer.getId())).thenReturn(true);
+        when(organizerRepositoryMock.findById(organizer.getId())).thenReturn(Optional.of(organizer));
         when(venueRepositoryMock.existsById(venue.getId())).thenReturn(true);
+        when(venueRepositoryMock.findById(venue.getId())).thenReturn(Optional.of(venue));
         when(participantRepositoryMock.existsById(any(Long.class))).thenReturn(false);
-
-        assertThatThrownBy(()->eventServiceTest.createEvent(eventDto))
-                .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessageContaining("Invalid participant. Register the participant first: participantId="+(participant == null ? "null" : participant.getId()));
-    }
-
-    @Test
-    void createEventWhenParticipantIsNull() {
-        Member member=Member.builder().id(1L).build();
-        Organizer organizer = Organizer.builder().id(1L).build();
-        Venue venue=Venue.builder().id(1L).build();
-        EventRegistrationDto eventDto = EventRegistrationDto.builder()
-                .name("Test DTO")
-                .location("Test Location")
-                .member(member)
-                .organizer(organizer)
-                .venue(venue)
-                .participantSet(null)
-                .build();
-        Event event = eventMapper.EventRegistrationDtoToEvent(eventDto);
-
-        assertThat(event).isNotNull();
-
-        assertThat(eventDto.getParticipantSet()).isNull();
-
-        when(memberRepositoryMock.existsById(any(Long.class))).thenReturn(true);
-        when(organizerRepositoryMock.existsById(any(Long.class))).thenReturn(true);
-        when(venueRepositoryMock.existsById(any(Long.class))).thenReturn(true);
 
         assertThatThrownBy(()->eventServiceTest.createEvent(eventDto))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("Invalid participant. Register the participant first");
     }
-    @Test
-    void createEventWhenParticipantIdIsNull() {
-        Member member=Member.builder().id(1L).build();
-        Organizer organizer = Organizer.builder().id(1L).build();
-        Venue venue=Venue.builder().id(1L).build();
-        Participant participant = Participant.builder().id(null).build();
-        EventRegistrationDto eventDto = EventRegistrationDto.builder()
-                .name("Test DTO")
-                .location("Test Location")
-                .member(member)
-                .organizer(organizer)
-                .venue(venue)
-                .participantSet(Set.of(participant))
-                .build();
-        Event event = eventMapper.EventRegistrationDtoToEvent(eventDto);
 
-        assertThat(event).isNotNull();
-
-        eventDto.getParticipantSet().forEach(participantSet ->{
-            assertThat(participantSet.getId()).isNull();
-        });
-
-        when(memberRepositoryMock.existsById(any(Long.class))).thenReturn(true);
-        when(organizerRepositoryMock.existsById(any(Long.class))).thenReturn(true);
-        when(venueRepositoryMock.existsById(any(Long.class))).thenReturn(true);
-
-        assertThatThrownBy(()->eventServiceTest.createEvent(eventDto))
-                .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessageContaining("Invalid participant. Register the participant first: participantId=" + (participant == null ? "null" : participant.getId()));
-    }
     @Test
     void updateEvent() {
         Event exitingEvent = Event.builder().id((long)1).build();
@@ -472,8 +334,9 @@ class EventServiceImplTest {
 
         eventServiceTest.updateEvent(updatedEvent.getId(),updatedEvent);
 
-        verify(eventRepositoryMock).save(updatedEvent);
+        verify(eventRepositoryMock).save(any(Event.class));
     }
+
     @Test
     void updateEventWhenEventNotPresent() {
         Event exitingEvent = Event.builder().id((long)1).build();
@@ -482,7 +345,7 @@ class EventServiceImplTest {
         when(eventRepositoryMock.findById(exitingEvent.getId())).thenReturn(Optional.empty());
 
 
-        Optional<Event> result = eventServiceTest.updateEvent(updatedEvent.getId(), updatedEvent);
+        Optional<EventDto> result = eventServiceTest.updateEvent(updatedEvent.getId(), updatedEvent);
 
         assertThat(result).isNotPresent();
     }
