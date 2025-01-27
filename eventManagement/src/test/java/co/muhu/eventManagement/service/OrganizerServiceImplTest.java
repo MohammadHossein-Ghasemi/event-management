@@ -2,6 +2,8 @@ package co.muhu.eventManagement.service;
 
 import co.muhu.eventManagement.entity.Organizer;
 import co.muhu.eventManagement.exception.ResourceNotFoundException;
+import co.muhu.eventManagement.model.OrganizerDto;
+import co.muhu.eventManagement.model.OrganizerRegistrationDto;
 import co.muhu.eventManagement.repository.EventRepository;
 import co.muhu.eventManagement.repository.OrganizerRepository;
 import org.junit.jupiter.api.AfterEach;
@@ -11,6 +13,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.util.Optional;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -55,7 +58,7 @@ class OrganizerServiceImplTest {
 
     @Test
     void createOrganizer() {
-        Organizer newOrganizer= Organizer.builder().id((long)1).build();
+        OrganizerRegistrationDto newOrganizer= OrganizerRegistrationDto.builder().build();
 
         organizerServiceTest.createOrganizer(newOrganizer);
 
@@ -64,13 +67,20 @@ class OrganizerServiceImplTest {
 
     @Test
     void updateOrganizer() {
-        Organizer exitingOrganizer=Organizer.builder().id((long)1).build();
-        Organizer updateOrganizer=Organizer.builder().id((long)1).name("Updated Organizer").build();
+        Organizer exitingOrganizer=Organizer.builder()
+                .id((long)1)
+                .event(Set.of())
+                .build();
+        Organizer updateOrganizer=Organizer.builder()
+                .id((long)1)
+                .name("Updated Organizer")
+                .event(Set.of())
+                .build();
 
         when(organizerRepositoryMock.findById(exitingOrganizer.getId())).thenReturn(Optional.of(exitingOrganizer));
         when(organizerRepositoryMock.save(any(Organizer.class))).thenReturn(updateOrganizer);
 
-        Optional<Organizer> result = organizerServiceTest.updateOrganizer(exitingOrganizer.getId(), updateOrganizer);
+        Optional<OrganizerDto> result = organizerServiceTest.updateOrganizer(exitingOrganizer.getId(), updateOrganizer);
 
         assertThat(result).isPresent();
         assertThat(result).hasValueSatisfying(organizer ->
@@ -87,7 +97,7 @@ class OrganizerServiceImplTest {
 
         when(organizerRepositoryMock.findById(exitingOrganizer.getId())).thenReturn(Optional.empty());
 
-        Optional<Organizer> result = organizerServiceTest.updateOrganizer(exitingOrganizer.getId(), updateOrganizer);
+        Optional<OrganizerDto> result = organizerServiceTest.updateOrganizer(exitingOrganizer.getId(), updateOrganizer);
 
         assertThat(result).isNotPresent();
 
