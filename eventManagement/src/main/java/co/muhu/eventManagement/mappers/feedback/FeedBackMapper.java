@@ -13,6 +13,9 @@ import java.util.List;
 public class FeedBackMapper {
 
     public static FeedBack feedBackRegistrationDtoToFeedBack(FeedBackRegistrationDto feedBackRegistrationDto) {
+        if (feedBackRegistrationDto==null){
+            return new FeedBack();
+        }
         return FeedBack.builder()
                 .rating(feedBackRegistrationDto.getRating())
                 .comments(feedBackRegistrationDto.getComments())
@@ -22,6 +25,9 @@ public class FeedBackMapper {
     }
 
     public static FeedBackDto feedBackToFeedBackDto(FeedBack feedBack) {
+        if(feedBack==null){
+            return new FeedBackDto();
+        }
         EventDto eventDto = EventMapper.eventToEventDto(feedBack.getEvent());
         ParticipantDto participantDto = ParticipantMapper.participantToParticipantDto(feedBack.getParticipant());
         return FeedBackDto.builder()

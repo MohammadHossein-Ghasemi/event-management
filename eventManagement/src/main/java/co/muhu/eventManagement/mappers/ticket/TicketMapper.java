@@ -11,6 +11,9 @@ import org.springframework.stereotype.Component;
 
 public class TicketMapper {
     public static Ticket ticketRegistrationDtoToTicket(TicketRegistrationDto ticketRegistrationDto) {
+        if (ticketRegistrationDto==null){
+            return new Ticket();
+        }
         return Ticket.builder()
                 .price(ticketRegistrationDto.getPrice())
                 .status(ticketRegistrationDto.getStatus())
@@ -20,6 +23,9 @@ public class TicketMapper {
     }
 
     public static TicketDto ticketToTicketDto(Ticket ticket){
+        if (ticket==null){
+            return new TicketDto();
+        }
         EventDto eventDto = EventMapper.eventToEventDto(ticket.getEvent());
         ParticipantDto participantDto = ParticipantMapper.participantToParticipantDto(ticket.getParticipant());
         return TicketDto.builder()

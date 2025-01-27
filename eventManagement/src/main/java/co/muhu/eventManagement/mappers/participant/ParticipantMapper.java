@@ -11,6 +11,9 @@ import java.util.List;
 
 public class ParticipantMapper {
     public static Participant participantRegistrationDtoToParticipant(ParticipantRegistrationDto participantRegistrationDto) {
+        if (participantRegistrationDto==null){
+            return new Participant();
+        }
         return Participant.builder()
                 .name(participantRegistrationDto.getName())
                 .email(participantRegistrationDto.getEmail())
@@ -19,6 +22,9 @@ public class ParticipantMapper {
     }
 
     public static ParticipantDto participantToParticipantDto(Participant participant){
+        if (participant==null){
+            return new ParticipantDto();
+        }
         List<EventDto> eventDtoList = participant.getEventSet()
                 .stream()
                 .map(EventMapper::eventToEventDto)

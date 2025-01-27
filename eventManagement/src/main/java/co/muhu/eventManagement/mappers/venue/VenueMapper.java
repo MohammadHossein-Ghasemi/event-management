@@ -11,6 +11,9 @@ import java.util.List;
 public class VenueMapper{
 
     public static Venue venueRegistrationDtoToVenue(VenueRegistrationDto venueRegistrationDto) {
+        if (venueRegistrationDto==null){
+            return new Venue();
+        }
         return Venue.builder()
                 .name(venueRegistrationDto.getName())
                 .address(venueRegistrationDto.getAddress())
@@ -19,6 +22,9 @@ public class VenueMapper{
     }
 
     public static VenueDto venueToVenueDto(Venue venue){
+        if (venue==null){
+            return new VenueDto();
+        }
         List<EventDto> eventDtoList = venue.getEventSet()
                 .stream()
                 .map(EventMapper::eventToEventDto)

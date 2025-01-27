@@ -8,10 +8,13 @@ import co.muhu.eventManagement.model.*;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-
+@Component
 public class EventMapper{
 
     public static Event eventRegistrationDtoToEvent(EventRegistrationDto eventRegistrationDto) {
+        if (eventRegistrationDto==null){
+            return new Event();
+        }
         return Event.builder()
                 .name(eventRegistrationDto.getName())
                 .description(eventRegistrationDto.getDescription())
@@ -26,7 +29,9 @@ public class EventMapper{
     }
 
     public static EventDto eventToEventDto(Event event) {
-
+        if (event==null){
+            return new EventDto();
+        }
         List<ParticipantDto> participantDtoList = event.getParticipantSet()
                 .stream()
                 .map(ParticipantMapper::participantToParticipantDto)

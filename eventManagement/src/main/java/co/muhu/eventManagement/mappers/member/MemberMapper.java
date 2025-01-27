@@ -10,6 +10,9 @@ import java.util.List;
 
 public class MemberMapper {
     public static Member memberRegistrationDtoToMember(MemberRegistrationDto memberRegistrationDto) {
+        if(memberRegistrationDto==null){
+            return new Member();
+        }
         return Member.builder()
                 .email(memberRegistrationDto.getEmail())
                 .firstName(memberRegistrationDto.getFirstName())
@@ -19,6 +22,9 @@ public class MemberMapper {
     }
 
     public static MemberDto memberToMemberDto(Member member){
+        if (member==null){
+            return new MemberDto();
+        }
         List<EventDto> organizedEvents = member
                 .getOrganizedEvents()
                 .stream()

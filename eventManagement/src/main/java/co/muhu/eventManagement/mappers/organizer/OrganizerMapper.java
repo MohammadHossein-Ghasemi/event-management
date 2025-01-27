@@ -12,12 +12,18 @@ import java.util.List;
 public class OrganizerMapper{
 
     public static Organizer organizerRegistrationDtoToOrganizer(OrganizerRegistrationDto organizerRegistrationDto) {
+        if(organizerRegistrationDto==null){
+            return new Organizer();
+        }
         return Organizer.builder()
                 .name(organizerRegistrationDto.getName())
                 .contactInfo(organizerRegistrationDto.getContactInfo())
                 .build();
     }
     public static OrganizerDto organizerToOrganizerDto(Organizer organizer){
+        if (organizer==null){
+            return new OrganizerDto();
+        }
         List<EventDto> eventDtoList = organizer.getEvent()
                 .stream()
                 .map(EventMapper::eventToEventDto)
