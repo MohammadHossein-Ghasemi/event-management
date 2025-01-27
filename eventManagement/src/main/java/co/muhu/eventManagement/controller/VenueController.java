@@ -17,8 +17,8 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 public class VenueController {
-    private static final String VENUE_PATH = "/api/v1/venue";
-    private static final String VENUE_PATH_ID = "/api/v1/venue/{venueId}";
+    public static final String VENUE_PATH = "/api/v1/venue";
+    public static final String VENUE_PATH_ID = "/api/v1/venue/{venueId}";
     private final VenueService venueService;
 
     @GetMapping(value = VENUE_PATH)
