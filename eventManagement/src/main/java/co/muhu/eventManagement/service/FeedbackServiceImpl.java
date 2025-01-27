@@ -53,13 +53,13 @@ public class FeedbackServiceImpl implements FeedbackService {
         return FeedBackMapper.feedBackToFeedBackDto(feedBackRepository.save(feedBack));
     }
 
-    private Optional<Event> checkingFeedBackEventValidate(FeedBackRegistrationDto feedBackRegistrationDto){
+    protected Optional<Event> checkingFeedBackEventValidate(FeedBackRegistrationDto feedBackRegistrationDto){
         if ((feedBackRegistrationDto.getEvent()==null)||(feedBackRegistrationDto.getEvent().getId()==null)||(!eventRepository.existsById(feedBackRegistrationDto.getEvent().getId()))){
             return Optional.empty();
         }
         return eventRepository.findById(feedBackRegistrationDto.getEvent().getId());
     }
-    private Optional<Participant> checkingFeedBackParticipantValidate(FeedBackRegistrationDto feedBackRegistrationDto){
+    protected Optional<Participant> checkingFeedBackParticipantValidate(FeedBackRegistrationDto feedBackRegistrationDto){
         if ((feedBackRegistrationDto.getParticipant()==null)||(feedBackRegistrationDto.getParticipant().getId()==null)||(!participantRepository.existsById(feedBackRegistrationDto.getParticipant().getId()))){
             return Optional.empty();
         }
