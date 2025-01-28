@@ -55,7 +55,7 @@ public class FeedBackController {
         FeedBackDto updatedFeedBack = feedbackService.updateFeedback(feedBackId, feedBack)
                 .orElseThrow(()-> new ResourceNotFoundException("There is no feedback with this id : "+feedBackId));
         return ResponseEntity
-                .status(HttpStatus.CREATED)
+                .status(HttpStatus.OK)
                 .header(HttpHeaders.LOCATION,FEEDBACK_PATH+"/"+feedBackId)
                 .body(updatedFeedBack);
     }
