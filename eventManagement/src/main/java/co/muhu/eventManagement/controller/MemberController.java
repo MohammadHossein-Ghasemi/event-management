@@ -77,7 +77,7 @@ public class MemberController {
     }
 
     @GetMapping(value = MEMBER_PATH_EMAIL)
-    public ResponseEntity<MemberDto> getMemberByMEmail(@RequestParam String memberEmail, HttpServletRequest request){
+    public ResponseEntity<MemberDto> getMemberByEmail(@RequestParam String memberEmail, HttpServletRequest request){
         MemberDto foundedMember= memberService.getMemberByEmail(memberEmail)
                .orElseThrow(()->new ResourceNotFoundException("There is no Member wit this email : "+memberEmail));
 
